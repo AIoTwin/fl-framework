@@ -1,0 +1,36 @@
+20 Samples
+Mobile Net V2
+Training time: 19.93
+Accuracy on test images: 11.19%
+
+Mobile Net V2 - not pretrained
+Training time: 53.2
+Accuracy on test images: 10.0%
+
+Simple Net
+Training time: 10.92
+Accuracy on test images: 15.53%
+
+
+200 Samples
+Mobile Net V2
+Training time: 292.86
+Accuracy on test images: 12.14%
+
+Mobile Net V2 - not pretrained
+Training time: 560.81
+Accuracy on test images: 2.6%
+
+Simple Net
+Training time: 49.19
+Accuracy on test images: 22.42%
+
+
+2000 Samples
+Mobile Net V2
+Training time: 3390.72
+Accuracy on test images: 10.57%
+
+Simple Net
+Training time: 741.68
+Accuracy on test images: 36.1%

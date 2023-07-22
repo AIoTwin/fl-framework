@@ -1,0 +1,9 @@
+flwr
+torch==2.0.1
+torchvision
+torchinfo
+matplotlib
+wandb
+spock-config
+opencv-python
+timm

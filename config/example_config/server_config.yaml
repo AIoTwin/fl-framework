@@ -1,0 +1,27 @@
+server_type: 'TorchServer'
+device: 'cpu'
+server_params:
+num_clients: &num_clients 2
+server_address: '127.0.0.1:5050'
+rounds: 2
+
+strategy_config:
+min_available_clients: *num_clients
+min_fit_clients: *num_clients
+min_evaluate_clients: *num_clients
+
+central_test_config:
+central_eval_metrics: [ 'Accuracy' ]
+central_main_metric: 'Accuracy'
+central_log_freq: 100
+central_dataset_id: 'cifar10/test'
+central_loader_params:
+  batch_size: 128
+  num_workers: 0
+  shuffle: False
+  pin_memory: True
+
+# logging config, model_config
+config: ['config/example_config/logging_config.yaml',
+         'config/example_config/custom_model_config.yaml',
+         'config/example_config/datasets_config.yaml']

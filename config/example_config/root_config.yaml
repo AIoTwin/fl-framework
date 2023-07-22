@@ -1,0 +1,4 @@
+num_clients: 2
+subset_strategy: "flat_fair"
+config: [ 'config/example_config/datasets_config.yaml',
+          'config/example_config/logging_config.yaml' ]
