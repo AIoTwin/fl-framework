@@ -7,37 +7,24 @@ from data_retrieval.retrieval import get_all_datasets, get_dataset_dict
 from fl_common import factory
 from fl_common.servers.registry import get_flower_server
 from log_infra import build_wandb_metric_logger, def_logger, prepare_local_log_file
-from misc.config_models import DatasetsConfig, LoggingConfig, ModelZooConfig, ServerConfig
+from misc.config_models import AggregatorConfig, DatasetsConfig, LoggingConfig, ModelZooConfig, ServerConfig
 from misc.util import recursive_vars
 from models.registry import load_model_from_zoo
 
 logger = def_logger.getChild(__name__)
 
-"""
-  Encapsulate this in object
-  
-  def start_server(flower_server):
-    # server.wandb_metric_logger.wandblogger.init()
 
-    # todo: strategy registry and retrieve it according to strategy_type
-    strategy = fl.server.strategy.FedAvg(
-        **vars(flower_server.server_config.strategy_config.strategy_params),
-        evaluate_fn=flower_server.__class__.evaluate_fn
-    )
-
-    logger.info(f"Starting server at address {flower_server.server_address}...")
-    fl.server.start_server(
-        server_address=flower_server.server_address,
-        config=fl.server.ServerConfig(num_rounds=flower_server.server_config.server_params.rounds),
-        strategy=strategy
-    )
-"""
-
-#
+def _default_strategy_params(params_dict, no_clients):
+    if "min_available_clients" not in params_dict:
+        params_dict["min_available_clients"] = no_clients
+    if "min_fit_clients" not in params_dict:
+        params_dict["min_fit_clients"] = no_clients
+    if "min_eval_clients" not in params_dict:
+        params_dict["min_evaluate_clients"] = no_clients
 
 
 if __name__ == '__main__':
-    config_space = SpockBuilder(ServerConfig,
+    config_space = SpockBuilder(AggregatorConfig,
                                 ModelZooConfig,
                                 LoggingConfig,
                                 DatasetsConfig,
@@ -46,23 +33,28 @@ if __name__ == '__main__':
 
     logging_config: LoggingConfig = config_space.LoggingConfig
     zoo_config: ModelZooConfig = config_space.ModelZooConfig
-    server_config: ServerConfig = config_space.ServerConfig
     datasets_config: DatasetsConfig = config_space.DatasetsConfig
+    aggregator_config: AggregatorConfig = config_space.AggregatorConfig
+    _default_strategy_params(aggregator_config.strategy_config.strategy_params,
+                             aggregator_config.no_children)
     prepare_local_log_file(log_file_path=logging_config.local_logging_config.log_file_path,
                            mode="a",
                            overwrite=False)
-    model = load_model_from_zoo(device=server_config.device, zoo_config=zoo_config)
+    model = load_model_from_zoo(device=aggregator_config.device, zoo_config=zoo_config)
     server_wandb_metric_logger = build_wandb_metric_logger(
         wandb_config=logging_config.wandb_config,
-        experiment_config_to_log=recursive_vars(server_config),
-        run_postfix="-server",
+        experiment_config_to_log=recursive_vars(aggregator_config),
+        run_postfix=f"-server_address={aggregator_config.server_config.server_address}",
         defer_init=False,
     )
     # todo: IPC to have one central place where we load datasets
-    test_set = get_all_datasets(datasets_config.params)[server_config.central_test_config.central_dataset_id]
+    test_set = get_all_datasets(datasets_config.params)[
+        aggregator_config.server_config.central_test_config.central_dataset_id]
     server = factory.create_server(
-        server_type=server_config.server_type,
-        server_config=server_config,
+        server_config=aggregator_config.server_config,
+        strategy_config=aggregator_config.strategy_config,
+        parent_address=aggregator_config.parent_address,
+        device=aggregator_config.device,
         constructed_model=model,
         test_set=test_set,
         wandb_metric_logger=server_wandb_metric_logger,

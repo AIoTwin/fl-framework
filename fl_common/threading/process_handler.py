@@ -11,6 +11,10 @@ from log_infra import def_logger
 logger = def_logger.getChild(__name__)
 
 
+CLIENT_EXEC = "fl_common/clients/client_exec.py"
+SERVER_EXEC = "fl_common/servers/server_exec.py"
+
+
 class ThreadWrapper(Thread):
     """
         Use this for lazy starting startable FL entities

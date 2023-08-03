@@ -10,10 +10,6 @@ from fl_common.threading.process_handler import run_script
 from log_infra import def_logger, prepare_local_log_file
 from misc.config_models import DatasetsConfig, LoggingConfig
 
-"""
-TODO next: Adjust client execution to use torch subprocesses
-"""
-
 logger = def_logger.getChild(__name__)
 
 

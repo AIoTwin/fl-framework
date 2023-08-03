@@ -33,7 +33,8 @@ def _flat_skewed(*args, **kwargs):
 
 def build_indices(strategy: str,
                   data_source: Container,
-                  *args, **kwargs) -> Optional[int]:
+                  *args,
+                  **kwargs) -> Optional[int]:
     if strategy == "flat_fair":
         return _flat_fair(data_source, *args, **kwargs)
     elif strategy == "flat_skewed":

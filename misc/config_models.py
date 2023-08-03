@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, List, Optional, Union
 
 from spock import SpockBuilder, spock
@@ -55,57 +56,54 @@ class TrainerConfig:
 class StrategyParams:
     fraction_fit: int = 1
     fraction_evaluate: int = 1
-    min_available_clients: int
-    min_fit_clients: int
-    min_evaluate_clients: int
-
-
-@spock
-class ServerParams:
-    num_clients: int
-    server_address: str
-    rounds: int
+    min_available_clients: Optional[int]
+    min_fit_clients: Optional[int]
+    min_evaluate_clients: Optional[int]
+    accept_failures: bool = False
 
 
 @spock
 class StrategyConfig:
     strategy_type: str = "FedAvg"
-    strategy_params: StrategyParams
+    strategy_params: Dict[str, object] = dict()
+
+    def __post_hook__(self):
+        if "factiona_fit" not in self.strategy_params:
+            self.strategy_params["fraction_fit"] = 1
+        if "fraction_evaluate" not in self.strategy_params:
+            self.strategy_params["fraction_evaluate"] = 1
 
 
 @spock
 class ServerConfig:
-    server_type: str
-    device: str
-    server_params: ServerParams
-    strategy_config: StrategyConfig
+    server_type: Optional[str]
+    server_address: Optional[str]
+    rounds: Optional[int]
     central_test_config: CentralTestConfig
+    server_kwargs: Dict[str, object] = dict()
 
 
 @spock
 class ClientConfig:
-    client_type: str
+    client_type: Optional[str]
     client_id: Optional[str]  # override with spock cli when creating thread
-    device: str
+    device: Optional[str]
     server_address: Optional[str]  # override to dynamically asisigning server address (e.g., after clustering)
     trainer_config: TrainerConfig
     client_params: Dict[str, object] = dict()
 
 
-
-
 @spock
 class AggregatorConfig:
-    """
-        As intended right now, aggregators will be the abstraction we need to support clustering.
-        Each aggregator associates a client type to a server type. Although clusters consist of heterogenous client
-        nodes, the clusters can be heterogenous among themselves.
+    parent_address: Optional[str]
+    device: str
+    strategy_config: StrategyConfig
+    server_config: ServerConfig  # config of aggregator's server
+    no_children: Optional[int]
 
-        We can think about extending this if we require heterogeneity in client types within a cluster.
-    """
-    trainer_base_config: TrainerConfig
-    server_config: ServerConfig
-    client_config: ClientConfig
+    # def __post_hook__(self):
+    #     assert not self.parent_address or self.server_config.server_type not in ["BidirectionalServer"], \
+    #         "Aggregators with parents require Bidirectional Servers"
 
 
 @spock
@@ -120,7 +118,6 @@ class WandBConfig:
     id: Optional[str]
     run_name: str
     scalar_freq: int = 1000
-
 
 
 @spock

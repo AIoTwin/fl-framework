@@ -1,0 +1,28 @@
+base_address: '127.0.0.1'
+port_range: '5050:5052'
+topology:
+  root:
+    base_config: &aggregator_config 'config/example_hierarchical_config/aggregator_config.yaml'
+    children:
+      aggregators:
+        [{ base_config: *aggregator_config,
+            children: {
+              clients: [
+                { base_config: &client_config 'config/example_hierarchical_config/client_config.yaml' },
+                { base_config: *client_config }
+              ]
+            }
+        },
+          { base_config: *aggregator_config,
+            children: {
+              clients: [
+                { base_config: *client_config },
+                { base_config: *client_config }
+              ]
+            }
+          },
+        ]
+
+subset_strategy: "flat_fair"
+config: [ 'config/example_hierarchical_config/datasets_config.yaml',
+          'config/example_hierarchical_config/logging_config.yaml' ]

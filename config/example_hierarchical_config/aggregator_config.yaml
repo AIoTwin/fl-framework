@@ -1,0 +1,22 @@
+device: 'cpu'
+strategy_config:
+strategy_type: 'FedAvg'
+strategy_params:
+  accept_failures: True
+server_config:
+rounds: 2
+central_test_config:
+central_eval_metrics: [ 'Accuracy' ]
+central_main_metric: 'Accuracy'
+central_log_freq: 100
+central_dataset_id: 'cifar10/test'
+central_loader_params:
+  batch_size: 128
+  num_workers: 0
+  shuffle: False
+  pin_memory: True
+
+# logging config, model_config
+config: ['config/example_hierarchical_config/logging_config.yaml',
+         'config/example_hierarchical_config/custom_model_config.yaml',
+         'config/example_hierarchical_config/datasets_config.yaml']

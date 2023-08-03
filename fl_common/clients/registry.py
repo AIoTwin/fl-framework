@@ -21,8 +21,45 @@ _CLIENT_REGISTRY = dict()
 logger = def_logger.getChild(__name__)
 
 
-def register_flower_client(_func: Callable = None, *, name: Optional[str] = None):
-    def decorator_register(cls: FlowerBaseClient):
+class TorchBaseClient(FlowerBaseClient):
+    """
+        Base class with common parameter loading and connection logic
+    """
+
+    def __init__(
+            self,
+            model: nn.Module,
+            server_address: str,
+            set_sizes: Optional[Dict[str, int]] = None,
+            *args,
+            **kwargs,
+    ):
+        self.server_address = server_address
+        self.model = model
+        self.set_sizes = set_sizes
+        # Client should have control to select its subset of data
+
+    def get_parameters(self, config) -> List[np.ndarray]:
+        # Return model parameters as a list of NumPy ndarrays
+        self.model.train()
+        return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
+
+    def set_parameters(self, parameters: List[np.ndarray]) -> None:
+        # Set model parameters from a list of NumPy ndarrays
+        state_dict = ndarray_to_weight_dict(self.model.state_dict().keys(), parameters)
+        self.model.load_state_dict(state_dict, strict=False)
+
+    def start(self, log_str: Optional[str] = None):
+        if log_str is None:
+            log_str = f"Starting client connecting to {self.server_address}"
+        logger.info(log_str)
+        # todo: Move metric logger to client and pass it to Trainer
+        # self.trainer.metric_logger.wandblogger.init()
+        fl.client.start_numpy_client(server_address=self.server_address, client=self)
+
+
+def register_flower_client(_func: TorchBaseClient = None, *, name: Optional[str] = None):
+    def decorator_register(cls: TorchBaseClient):
         @functools.wraps(cls)
         def wrapper_register():
             cls_name = name or cls.__name__
@@ -38,7 +75,7 @@ def register_flower_client(_func: Callable = None, *, name: Optional[str] = None
 
 
 @register_flower_client(name="TorchClient")
-class TorchClient(FlowerBaseClient):
+class TorchClient(TorchBaseClient):
     def __init__(
             self,
             model: nn.Module,
@@ -49,30 +86,20 @@ class TorchClient(FlowerBaseClient):
             *args,
             **kwargs,
     ):
+        super().__init__(model, server_address, *args, **kwargs)
         logger.debug(f"Constructing client with id: {client_id}")
-        self.server_address = server_address
         self.client_id = client_id
-        self.model = model
         # Client should have control to select its subset of data
         self.trainer = client_trainer
         self.monitor = monitor
-
-    def get_parameters(self, config) -> List[np.ndarray]:
-        # Return model parameters as a list of NumPy ndarrays
-        self.model.train()
-        return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
-
-    def set_parameters(self, parameters: List[np.ndarray]) -> None:
-        # Set model parameters from a list of NumPy ndarrays
-        state_dict = ndarray_to_weight_dict(self.model.state_dict().keys(), parameters)
-        self.model.load_state_dict(state_dict, strict=False)
+        self.set_sizes = client_trainer.set_sizes
 
     def fit(
             self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.set_parameters(parameters)
         self.trainer.train(self.model)
-        return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
+        return self.get_parameters(config={}), self.set_sizes["train"], {}
 
     def evaluate(
             self, parameters, *args, **kwargs
@@ -87,16 +114,10 @@ class TorchClient(FlowerBaseClient):
             {"accuracy": float(accuracy)},
         )
 
-    # @staticmethod
-    # def start(client):
-    #     logger.info(f"Starting client with id {client.client_id}")
-    #     client.trainer.metric_logger.wandblogger.init()
-    #     fl.client.start_numpy_client(server_address=client.server_address, client=client)
-
-    def start(self):
-        logger.info(f"Starting client with id {self.client_id}")
-        self.trainer.metric_logger.wandblogger.init()
-        fl.client.start_numpy_client(server_address=self.server_address, client=self)
+    def start(self, log_str: Optional[str] = None):
+        if log_str is None:
+            log_str = f"Starting client with id {self.client_id} connecting to server at {self.server_address}"
+        super().start(log_str=log_str)
 
 
 @register_flower_client
