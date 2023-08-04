@@ -1,5 +1,4 @@
 unreliable_client_type: 'UnreliableTorchClient'
-failure_rate: 2
 device: 'cpu'
 trainer_config:
 train_config:

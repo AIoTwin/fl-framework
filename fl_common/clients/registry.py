@@ -123,24 +123,26 @@ class UnreliableTorchClient(FlowerBaseClient):
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.count = self.count + 1
         if self.count % self.failure_rate == 0:
-            raise Exception("Client failed - no training this round!")
-        self.set_parameters(parameters)
-        self.trainer.train(self.model)
-        return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
+            logger.info(f"Client with id {self.client_id} failed - no training this round!")
+        else:
+            self.set_parameters(parameters)
+            self.trainer.train(self.model)
+            return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
 
     def evaluate(
             self, parameters, *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
         if self.count % self.failure_rate == 0:
-            raise Exception("Client failed - no evaluation this round!")
-        self.set_parameters(parameters)
-        result_dict = self.trainer.validate(self.model)
-        loss, accuracy = result_dict["Cross Entropy"], result_dict["acc@1"]
-        return (
-            float(loss),
-            self.trainer.set_sizes["test"],
-            {"accuracy": float(accuracy)},
-        )
+            logger.info(f"Client with id {self.client_id} failed - no evaluation this round!")
+        else:
+            self.set_parameters(parameters)
+            result_dict = self.trainer.validate(self.model)
+            loss, accuracy = result_dict["Cross Entropy"], result_dict["acc@1"]
+            return (
+                float(loss),
+                self.trainer.set_sizes["test"],
+                {"accuracy": float(accuracy)},
+            )
 
     def start(self):
         logger.info(f"Starting client with id {self.client_id}")

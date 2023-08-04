@@ -1,6 +1,7 @@
 import concurrent.futures
 import time
 from enum import Enum
+from typing import List
 
 from spock import SpockBuilder, spock
 
@@ -35,6 +36,7 @@ class PilotExperimentConfig:
     test_only: bool = False
     num_reliable_clients: int
     num_unreliable_clients: int
+    failure_rate: List[int]
     logging_config: LoggingConfig
     dataset_config: DatasetsConfig
     subset_strategy: SubsetStrategy
@@ -73,9 +75,12 @@ def run(root_config: PilotExperimentConfig):
                                 ["-c",
                                  "config/example_config/unreliable_client_config.yaml",
                                  "--UnreliableClientConfig.client_id",
-                                 f"{client_id+root_config.num_reliable_clients}",
+                                 f"{client_id + root_config.num_reliable_clients}",
+                                 "--UnreliableClientConfig.failure_rate",
+                                 f"{root_config.failure_rate[0]}",
                                  ])
             )
+
 
 if __name__ == "__main__":
     description = "Preliminary Experiments to test the effects of client dropouts on predictive strength"

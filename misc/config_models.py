@@ -96,7 +96,7 @@ class ClientConfig:
 @spock
 class UnreliableClientConfig():
     unreliable_client_type: str
-    failure_rate: int
+    failure_rate: Optional[int]
     client_id: Optional[str]  # override with spock cli when creating thread
     device: str
     server_address: Optional[str]  # override to dynamically asisigning server address (e.g., after clustering)

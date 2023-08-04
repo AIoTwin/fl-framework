@@ -44,5 +44,6 @@ if __name__ == '__main__':
         client_trainer=client_trainer,
         constructed_model=model,
         client_id=client_id,
+        failure_rate=unreliable_client_config.failure_rate
     )
     client.start()
