@@ -1,5 +1,5 @@
 wandb_config:
-project: 'example_project'
+project: '4_clients_2_fail_every_2_rounds'
 entity: 'aiotwin-wandb'
 run_name: 'example_run'
 enabled: False

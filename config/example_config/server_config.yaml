@@ -1,14 +1,16 @@
 server_type: 'TorchServer'
 device: 'cpu'
+num_reliable_clients: &num_reliable_clients 2
+num_unreliable_clients: &num_unreliable_clients 2
+
 server_params:
-num_clients: &num_clients 2
 server_address: '127.0.0.1:5050'
-rounds: 2
+rounds: 10
 
 strategy_config:
-min_available_clients: *num_clients
-min_fit_clients: *num_clients
-min_evaluate_clients: *num_clients
+min_available_clients:  4 #clients used during training
+min_fit_clients: 4 #min clients during validation
+min_evaluate_clients: 4 #min clients in the system
 
 central_test_config:
 central_eval_metrics: [ 'Accuracy' ]

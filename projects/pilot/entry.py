@@ -4,8 +4,6 @@ from enum import Enum
 
 from spock import SpockBuilder, spock
 
-from data_retrieval import get_all_datasets
-from data_retrieval.samplers.indexer import build_indices
 from fl_common.threading.process_handler import run_script
 from log_infra import def_logger, prepare_local_log_file
 from misc.config_models import DatasetsConfig, LoggingConfig
@@ -35,7 +33,8 @@ class PilotExperimentConfig:
         Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
     test_only: bool = False
-    num_clients: int
+    num_reliable_clients: int
+    num_unreliable_clients: int
     logging_config: LoggingConfig
     dataset_config: DatasetsConfig
     subset_strategy: SubsetStrategy
@@ -50,14 +49,14 @@ def run(root_config: PilotExperimentConfig):
                            overwrite=False)
     server_futures = []
     client_futures = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
         server_futures.append(executor.submit(run_script,
                                               "fl_common/servers/server_exec.py",
                                               ["-c", "config/example_config/server_config.yaml"]))
         time.sleep(10)  # Todo: can we poll the server to see if it's ready?
         # run_script("fl_common/servers/server_exec.py",["-c", "config/example_config/server_config.yaml"])
         # for client_id in range(run_config.number_clients):
-        for client_id in range(2):
+        for client_id in range(root_config.num_reliable_clients):
             client_futures.append(
                 executor.submit(run_script,
                                 "fl_common/clients/client_exec.py",
@@ -67,7 +66,16 @@ def run(root_config: PilotExperimentConfig):
                                  f"{client_id}",
                                  ])
             )
-
+        for client_id in range(root_config.num_unreliable_clients):
+            client_futures.append(
+                executor.submit(run_script,
+                                "fl_common/clients/unreliable_client_exec.py",
+                                ["-c",
+                                 "config/example_config/unreliable_client_config.yaml",
+                                 "--UnreliableClientConfig.client_id",
+                                 f"{client_id+root_config.num_reliable_clients}",
+                                 ])
+            )
 
 if __name__ == "__main__":
     description = "Preliminary Experiments to test the effects of client dropouts on predictive strength"

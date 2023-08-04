@@ -62,7 +62,6 @@ class StrategyParams:
 
 @spock
 class ServerParams:
-    num_clients: int
     server_address: str
     rounds: int
 
@@ -77,6 +76,8 @@ class StrategyConfig:
 class ServerConfig:
     server_type: str
     device: str
+    num_reliable_clients: int
+    num_unreliable_clients: int
     server_params: ServerParams
     strategy_config: StrategyConfig
     central_test_config: CentralTestConfig
@@ -92,6 +93,15 @@ class ClientConfig:
     client_params: Dict[str, object] = dict()
 
 
+@spock
+class UnreliableClientConfig():
+    unreliable_client_type: str
+    failure_rate: int
+    client_id: Optional[str]  # override with spock cli when creating thread
+    device: str
+    server_address: Optional[str]  # override to dynamically asisigning server address (e.g., after clustering)
+    trainer_config: TrainerConfig
+    client_params: Dict[str, object] = dict()
 
 
 @spock
