@@ -121,6 +121,14 @@ class TorchServer(IFlowerServer):
         return cross_entropy, {"accuracy": accuracy}
 
     @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    def model(self, model):
+        self._model = model
+
+    @property
     def server_address(self) -> str:
         return self._server_address
 
@@ -144,6 +152,15 @@ class TorchServer(IFlowerServer):
 
 @register_flower_server
 class BidirectionalServer(TorchServer):
+
+    @property
+    def model(self):
+        return self._client.model
+
+    @model.setter
+    def model(self, model):
+        self._model = model
+
     class _AnonymousClient(fl.client.NumPyClient):
         def __init__(self,
                      model: nn.Module,
@@ -158,22 +175,6 @@ class BidirectionalServer(TorchServer):
             self.loader = test_loader
             self.eval_config = eval_config
             self.metric_logger = metric_logger
-
-        def evaluate(
-                self,
-                parameters,
-                *args,
-                **kwargs
-        ) -> Tuple[float, int, Dict[str, Any]]:
-            self.set_parameters(parameters)
-            loss = kwargs.get("loss")
-            accuracy = kwargs.get("accuracy")
-            set_size = kwargs.get("set_size")
-            return (
-                float(loss),
-                set_size,
-                {"accuracy": float(accuracy)},
-            )
 
         def evaluate(self,
                      parameters: NDArrays,
@@ -255,12 +256,19 @@ class BidirectionalServer(TorchServer):
     def start(self):
         self.wandb_metric_logger.wandblogger.init()
 
-        logger.info(f"Starting server at address {self.server_address}...")
+        logger.info(f"Starting mid-level aggregator server at address {self.server_address}...")
         fl.server.start_server(
             server_address=self.server_address,
             config=fl.server.ServerConfig(num_rounds=self.rounds),
             strategy=self.strategy
         )
+
+    def evaluate(self,
+                 server_round: int,
+                 parameters: NDArrays,
+                 config: Dict[str, Scalar]
+                 ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
+        pass
 
 
 def get_flower_server(name: str) -> Callable[..., TorchServer]:

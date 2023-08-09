@@ -1,5 +1,17 @@
 This should be a *true* local-first pyhton-native federated learning framework for PyTorch.
 
+# Setup [TODO]
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && pip install spock-config==3.0.2 --no-deps
+```
+To use the .venv in pycharm
+1. ctrl + alt + s (Open Project Settings)
+2. Go to Project Interpreter
+3. Add interpreter
+4. Select existing 
+
 # Project Structure [TODO]
 
 Paper applications as subroots, but share .venv from repo root
@@ -12,7 +24,6 @@ entities are first class citizen concepts for our related line of papers
 
 Add custom data loaders and datasets into loader
 
-# Setup [TODO]
 
 # Config Pattern [TODO]
 

@@ -4,6 +4,9 @@ torchvision
 torchinfo
 matplotlib
 wandb
-spock-config
 opencv-python
 timm
+PyYAML==6.0.1
+cryptography
+pytomlpp
+attrs~=21.4
