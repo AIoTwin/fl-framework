@@ -11,28 +11,23 @@ from log_infra import def_logger
 from misc.util import ndarray_to_weight_dict
 
 
-class FlowerBaseClient(NumPyClient):
-    def start(self, *args, **kwargs):
-        raise NotImplementedError
-
-
 _CLIENT_REGISTRY = dict()
 
 logger = def_logger.getChild(__name__)
 
 
-class TorchBaseClient(FlowerBaseClient):
+class TorchBaseClient(NumPyClient):
     """
-        Base class with common parameter loading and connection logic
+    Base class with common parameter loading and connection logic
     """
 
     def __init__(
-            self,
-            model: nn.Module,
-            server_address: str,
-            set_sizes: Optional[Dict[str, int]] = None,
-            *args,
-            **kwargs,
+        self,
+        model: nn.Module,
+        server_address: str,
+        set_sizes: Optional[Dict[str, int]] = None,
+        *args,
+        **kwargs,
     ):
         self.server_address = server_address
         self.model = model
@@ -58,7 +53,9 @@ class TorchBaseClient(FlowerBaseClient):
         fl.client.start_numpy_client(server_address=self.server_address, client=self)
 
 
-def register_flower_client(_func: TorchBaseClient = None, *, name: Optional[str] = None):
+def register_flower_client(
+    _func: TorchBaseClient = None, *, name: Optional[str] = None
+):
     def decorator_register(cls: TorchBaseClient):
         @functools.wraps(cls)
         def wrapper_register():
@@ -77,14 +74,14 @@ def register_flower_client(_func: TorchBaseClient = None, *, name: Optional[str]
 @register_flower_client(name="TorchClient")
 class TorchClient(TorchBaseClient):
     def __init__(
-            self,
-            model: nn.Module,
-            server_address: str,
-            client_id: str,
-            client_trainer: ClientTrainer,
-            monitor: bool = False,  # ???
-            *args,
-            **kwargs,
+        self,
+        model: nn.Module,
+        server_address: str,
+        client_id: str,
+        client_trainer: ClientTrainer,
+        monitor: bool = False,  # ???
+        *args,
+        **kwargs,
     ):
         super().__init__(model, server_address, *args, **kwargs)
         logger.debug(f"Constructing client with id: {client_id}")
@@ -95,15 +92,23 @@ class TorchClient(TorchBaseClient):
         self.set_sizes = client_trainer.set_sizes
 
     def fit(
-            self, parameters, *args, **kwargs
+        self, parameters: List[np.array], config: Dict[str, Any], *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
+        """
+        :parameters: model weights as list of numpy arrays
+        :config: arg set by Flower, passed by on_fit_config_fn parameter of Strategy
+        """
         self.set_parameters(parameters)
         self.trainer.train(self.model)
         return self.get_parameters(config={}), self.set_sizes["train"], {}
 
     def evaluate(
-            self, parameters, *args, **kwargs
+        self, parameters: List[np.array], config: Dict[str, Any], *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
+        """
+        :parameters: model weights as list of numpy arrays
+        :config: arg set by Flower, passed by on_evaluate_config parameter of Strategy
+        """
         self.set_parameters(parameters)
         result_dict = self.trainer.validate(self.model)
         # todo: Don't assume validation metrics
@@ -123,21 +128,21 @@ class TorchClient(TorchBaseClient):
 @register_flower_client
 class FailableTorchClient(TorchClient):
     def __init__(
-            self,
-            model: nn.Module,
-            monitor: bool,
-            client_id: str,
-            client_trainer: ClientTrainer,
-            failure: int,
-            *args,
-            **kwargs,
+        self,
+        model: nn.Module,
+        monitor: bool,
+        client_id: str,
+        client_trainer: ClientTrainer,
+        failure: int,
+        *args,
+        **kwargs,
     ):
         super().__init__(model, monitor, client_id, client_trainer, *args, **kwargs)
         self.failure = failure
         self.count = 0
 
     def fit(
-            self, parameters, *args, **kwargs
+        self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         if self.failure != 0:
             self.count = self.count + 1

@@ -4,9 +4,7 @@ from enum import Enum
 
 from spock import SpockBuilder, spock
 
-from data_retrieval import get_all_datasets
-from data_retrieval.samplers.indexer import build_indices
-from fl_common.threading.process_handler import run_script
+from fl_common.process_handler import run_script
 from log_infra import def_logger, prepare_local_log_file
 from misc.config_models import DatasetsConfig, LoggingConfig
 

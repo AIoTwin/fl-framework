@@ -17,8 +17,32 @@ from log_infra import def_logger
 
 logger = def_logger.getChild(__name__)
 
+SimpleNamespace = type(sys.implementation)
 PathLike = Union[str, os.PathLike]
 
+
+class IterableSimpleNamespace(SimpleNamespace):
+    """
+    Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    enables usage with dict() and for loops.
+    """
+
+    def __iter__(self):
+        """Return an iterator of key-value pairs from the namespace's attributes."""
+        return iter(vars(self).items())
+
+    def __str__(self):
+        """Return a human-readable string representation of the object."""
+        return '\n'.join(f'{k}={v}' for k, v in vars(self).items())
+
+    def __getattr__(self, attr):
+        """Custom attribute access error message with helpful information."""
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'.")
+
+    def get(self, key, default=None):
+        """Return the value of the specified key if it exists; otherwise, return the default value."""
+        return getattr(self, key, default)
 
 def check_if_exists(file_path: PathLike) -> bool:
     return file_path is not None and os.path.exists(file_path)

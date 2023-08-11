@@ -13,6 +13,7 @@ logger = def_logger.getChild(__name__)
 
 CLIENT_EXEC = "fl_common/clients/client_exec.py"
 SERVER_EXEC = "fl_common/servers/server_exec.py"
+AGGREGATOR_EXEC = "fl_common/aggregators/aggregator_exec.py"
 
 
 class ThreadWrapper(Thread):

@@ -74,14 +74,6 @@ class StrategyConfig:
             self.strategy_params["fraction_evaluate"] = 1
 
 
-@spock
-class ServerConfig:
-    server_type: Optional[str]
-    server_address: Optional[str]
-    rounds: Optional[int]
-    central_test_config: CentralTestConfig
-    server_kwargs: Dict[str, object] = dict()
-
 
 @spock
 class ClientConfig:
@@ -97,13 +89,16 @@ class ClientConfig:
 class AggregatorConfig:
     parent_address: Optional[str]
     device: str
+    central_test_config: CentralTestConfig
     strategy_config: StrategyConfig
-    server_config: ServerConfig  # config of aggregator's server
-    no_children: Optional[int]
+    server_type: Optional[str]
+    server_address: Optional[str]
+    server_kwargs: Dict[str, object] = dict()
 
-    # def __post_hook__(self):
-    #     assert not self.parent_address or self.server_config.server_type not in ["BidirectionalServer"], \
-    #         "Aggregators with parents require Bidirectional Servers"
+    rounds: Optional[int]
+    # Number of expected children connections (Combination of other aggregators and clients)
+    num_children: Optional[int]
+
 
 
 @spock

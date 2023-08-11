@@ -7,7 +7,7 @@ from data_retrieval.retrieval import get_all_datasets, get_dataset_dict
 from fl_common import factory
 from fl_common.servers.registry import get_flower_server
 from log_infra import build_wandb_metric_logger, def_logger, prepare_local_log_file
-from misc.config_models import AggregatorConfig, DatasetsConfig, LoggingConfig, ModelZooConfig, ServerConfig
+from misc.config_models import AggregatorConfig, DatasetsConfig, LoggingConfig, ModelZooConfig
 from misc.util import recursive_vars
 from models.registry import load_model_from_zoo
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     datasets_config: DatasetsConfig = config_space.DatasetsConfig
     aggregator_config: AggregatorConfig = config_space.AggregatorConfig
     _default_strategy_params(aggregator_config.strategy_config.strategy_params,
-                             aggregator_config.no_children)
+                             aggregator_config.num_children)
     prepare_local_log_file(log_file_path=logging_config.local_logging_config.log_file_path,
                            mode="a",
                            overwrite=False)

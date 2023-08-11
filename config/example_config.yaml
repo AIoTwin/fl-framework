@@ -26,7 +26,7 @@ params:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
     #    root: &root_dir !join ['./resource/dataset/', *dataset_name]
-    root: &root_dir './resource/dataset/cifar10'
+    root: &root_dir './resources/dataset/cifar10'
     splits:
       train:
         #        dataset_id: &cifar10_train !join [*dataset_name, '/train']

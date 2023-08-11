@@ -2,16 +2,13 @@ import concurrent.futures
 import re
 import time
 from collections import defaultdict
-from enum import Enum
 from typing import Dict, Iterable, List
 
 from spock import SpockBuilder, spock
 from itertools import count
-from data_retrieval import get_all_datasets
-from data_retrieval.samplers.indexer import build_indices
-from fl_common.threading.process_handler import SERVER_EXEC, run_script
+from fl_common.process_handler import AGGREGATOR_EXEC, SERVER_EXEC, run_script
 from log_infra import def_logger, prepare_local_log_file
-from misc.config_models import DatasetsConfig, LoggingConfig, ServerConfig
+from misc.config_models import DatasetsConfig, LoggingConfig
 
 """
 TODO next: 
@@ -60,16 +57,17 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
         root_address = f"{entry_config.base_address}:{next(ports)}"
         root_config = root["base_config"]
         root_children = root["children"]
-        no_children = len(root_children.get("aggregators", [])) + len(root_children.get("clients", []))
+        num_children = len(root_children.get("aggregators", [])) + len(root_children.get("clients", []))
         global_agg_future = executor.submit(run_script,
-                                            SERVER_EXEC,
+                                            AGGREGATOR_EXEC,
                                             ["-c",
                                              root_config,
-                                             f"--AggregatorConfig.no_children", f"{no_children}",
-                                             f"--ServerConfig.server_address", f"{root_address}",
-                                             f"--ServerConfig.server_type", "TorchServer"])
+                                             f"--AggregatorConfig.num_children", f"{num_children}",
+                                             f"--AggregatorConfig.server_address", f"{root_address}",
+                                             f"--AggregatorConfig.server_type", "TorchServerWithCentralizedEval"])
         aggregator_futures[f"Parent=None"] = global_agg_future
         root_children["parent_address"] = root_address
+        time.sleep(5)
         stack: List[object] = [root_children]
         while stack:
             node: Dict = stack.pop()
@@ -81,17 +79,19 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                     children = aggregator_node.get("children", [])
                     base_config = aggregator_node["base_config"]
                     aggregator_address = f"{entry_config.base_address}:{next(ports)}"
+                    num_children = len(children.get("aggregators", [])) + len(children.get("clients", []))
                     aggregator_futures[f"Parent={parent_address}"] = executor.submit(
                         run_script,
-                        SERVER_EXEC,
+                        AGGREGATOR_EXEC,
                         ["-c",
                          base_config,
-                         f"--AggregatorConfig.no_children", f"{len(aggregator_node['children'])}",
+                         f"--AggregatorConfig.num_children", f"{num_children}",
                          f"--AggregatorConfig.parent_address", f"{parent_address}",
-                         f"--ServerConfig.server_address", f"{aggregator_address}",
-                         f"--ServerConfig.server_type", "BidirectionalServer",
+                         f"--AggregatorConfig.server_address", f"{aggregator_address}",
+                         f"--AggregatorConfig.server_type", "TorchServer",
                          ]
                     )
+                    time.sleep(5)
                     # only aggregators can have children
                     if children:
                         children["parent_address"] = aggregator_address

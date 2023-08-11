@@ -3,7 +3,6 @@ strategy_config:
 strategy_type: 'FedAvg'
 strategy_params:
   accept_failures: True
-server_config:
 rounds: 2
 central_test_config:
 central_eval_metrics: [ 'Accuracy' ]

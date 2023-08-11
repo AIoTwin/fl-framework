@@ -1,6 +1,5 @@
 server_type: 'TorchServer'
 device: 'cpu'
-server_params:
 num_clients: &num_clients 2
 server_address: '127.0.0.1:5050'
 rounds: 2
