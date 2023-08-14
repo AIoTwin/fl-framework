@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 from flwr.client import NumPyClient
+from overrides import overrides
 from torch import nn
 
 from fl_common.train.trainer import ClientTrainer
@@ -125,17 +126,17 @@ class TorchClient(TorchBaseClient):
         super().start(log_str=log_str)
 
 
-@register_flower_client(name="UnreliableTorchClient")
-class UnreliableTorchClient(FlowerBaseClient):
+@register_flower_client(name="UnreliableClient")
+class UnreliableTorchClient(TorchClient):
     def __init__(
-            self,
-            model: nn.Module,
-            client_id: str,
-            client_trainer: ClientTrainer,
-            failure_rate: int,
-            server_address: str,
-            *args,
-            **kwargs,
+        self,
+        model: nn.Module,
+        client_id: str,
+        client_trainer: ClientTrainer,
+        failure_rate: int,
+        server_address: str,
+        *args,
+        **kwargs,
     ):
         logger.debug(f"Constructing unreliable client with id: {client_id}")
         self.server_address = server_address
@@ -144,30 +145,29 @@ class UnreliableTorchClient(FlowerBaseClient):
         self.trainer = client_trainer
         self.failure_rate = failure_rate
         self.count = 0
-    def get_parameters(self, config) -> List[np.ndarray]:
-        self.model.train()
-        return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
 
-    def set_parameters(self, parameters: List[np.ndarray]) -> None:
-        state_dict = ndarray_to_weight_dict(self.model.state_dict().keys(), parameters)
-        self.model.load_state_dict(state_dict, strict=False)
-
+    @overrides
     def fit(
         self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.count = self.count + 1
         if self.count % self.failure_rate == 0:
-            logger.info(f"Client with id {self.client_id} failed - no training this round!")
+            logger.info(
+                f"Client with id {self.client_id} failed - no training this round!"
+            )
         else:
             self.set_parameters(parameters)
             self.trainer.train(self.model)
             return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
 
+    @overrides
     def evaluate(
-            self, parameters, *args, **kwargs
+        self, parameters, *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
         if self.count % self.failure_rate == 0:
-            logger.info(f"Client with id {self.client_id} failed - no evaluation this round!")
+            logger.info(
+                f"Client with id {self.client_id} failed - no evaluation this round!"
+            )
         else:
             self.set_parameters(parameters)
             result_dict = self.trainer.validate(self.model)
@@ -178,10 +178,13 @@ class UnreliableTorchClient(FlowerBaseClient):
                 {"accuracy": float(accuracy)},
             )
 
-    def start(self):
-        logger.info(f"Starting client with id {self.client_id}")
-        self.trainer.metric_logger.wandblogger.init()
-        fl.client.start_numpy_client(server_address=self.server_address, client=self)
+    def start(self, log_str: Optional[str] = None):
+        if log_str is None:
+            log_str = (
+                f"Starting unreliable client (failure_rate={self.failure_rate}) "
+                f"with id {self.client_id} connecting to server at {self.server_address}"
+            )
+        super().start(log_str=log_str)
 
 
 def get_flower_client(name: str) -> Callable[..., TorchClient]:

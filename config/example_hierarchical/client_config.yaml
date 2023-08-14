@@ -3,7 +3,6 @@ device: 'cpu'
 
 trainer_config:
 train_config:
-server_address: '127.0.0.1:5050'
 train_dataset_id: 'cifar10/train'
 epochs: 2
 train_loader_params:
@@ -33,6 +32,6 @@ eval_loader_params:
   pin_memory: True
 
 
-config: [ 'config/example_config/logging_config.yaml',
-          'config/example_config/custom_model_config.yaml',
-          'config/example_config/datasets_config.yaml' ]
+config: [ '../example_shared/logging_config.yaml',
+          '../example_shared/custom_model_config.yaml',
+          '../example_shared/datasets_config.yaml' ]

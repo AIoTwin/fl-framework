@@ -16,6 +16,6 @@ central_loader_params:
   pin_memory: True
 
 # logging config, model_config
-config: ['config/example_hierarchical_config/logging_config.yaml',
-         'config/example_hierarchical_config/custom_model_config.yaml',
-         'config/example_hierarchical_config/datasets_config.yaml']
+config: ['../example_shared/logging_config.yaml',
+         '../example_shared/model_config.yaml',
+         '../example_shared/datasets_config.yaml']

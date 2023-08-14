@@ -92,7 +92,6 @@ def create_aggregator(
         )
 
         # create strategy
-        # todo move to factory
         strategy = get_strategy(
             name=aggregator_config.strategy_config.strategy_type,
             partial_params=strategy_partial_params,
@@ -170,52 +169,22 @@ def create_client(
     return client
 
 
-def create_unreliable_client(
-        unreliable_client_config: UnreliableClientConfig,
-        client_id: int,
-        failure_rate:int,
-        client_trainer: ClientTrainer,
-        constructed_model: nn.Module
-) -> FlowerBaseClient:
-    client_cls = get_unreliable_client(name=unreliable_client_config.unreliable_client_type)
-    client = client_cls(
-        model=constructed_model,
-        client_id=client_id,
-        client_trainer=client_trainer,
-        failure_rate=failure_rate,
-        server_address=unreliable_client_config.server_address,
-        **unreliable_client_config.client_params)
-    return client
-
-
 # todo: delete
-# def create_server(
-#         server_config: ServerConfig,
-#         strategy_config: StrategyConfig,
-#         constructed_model: nn.Module,
-#         wandb_metric_logger: WandBMetricLogger,
-#         test_set: Dataset,
-#         device: str,
-#         parent_address: Optional[str] = None,
-#         *args,
-#         **kwargs
-# ):
-#     # todo: support for registering and retrieving strategy
-#     #  strategy = get_fl_strategy(name=strategy_config.strategy_type, ...)
-#
-#     strategy = partial(fl.server.strategy.FedAvg, **strategy_config.strategy_params)
-#
-#     server_cls = get_flower_server(name=server_config.server_type)
-#     kwargs.update(server_config.server_kwargs)
-#     server = server_cls(
+# def create_unreliable_client(
+#         unreliable_client_config: UnreliableClientConfig,
+#         client_id: int,
+#         failure_rate:int,
+#         client_trainer: ClientTrainer,
+#         constructed_model: nn.Module
+# ) -> FlowerBaseClient:
+#     client_cls = get_unreliable_client(name=unreliable_client_config.unreliable_client_type)
+#     client = client_cls(
 #         model=constructed_model,
-#         test_config=server_config.central_test_config,
-#         device=device,
-#         strategy=strategy,
-#         wandb_metric_logger=wandb_metric_logger,
-#         test_set=test_set,
-#         server_address=server_config.server_address,
-#         rounds=server_config.rounds,
-#         parent_address=parent_address,
-#     )
-#     return server
+#         client_id=client_id,
+#         client_trainer=client_trainer,
+#         failure_rate=failure_rate,
+#         server_address=unreliable_client_config.server_address,
+#         **unreliable_client_config.client_params)
+#     return client
+
+

@@ -53,7 +53,6 @@ class TrainerConfig:
 
 
 
-
 @spock
 class ServerParams:
     num_clients: int

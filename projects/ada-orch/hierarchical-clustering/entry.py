@@ -6,7 +6,7 @@ from typing import Dict, Iterable, List
 
 from spock import SpockBuilder, spock
 from itertools import count
-from fl_common.process_handler import AGGREGATOR_EXEC, SERVER_EXEC, run_script
+from fl_common.process_handler import AGGREGATOR_EXEC, run_script
 from log_infra import def_logger, prepare_local_log_file
 from misc.config_models import DatasetsConfig, LoggingConfig
 

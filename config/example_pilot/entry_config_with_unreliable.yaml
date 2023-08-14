@@ -1,0 +1,5 @@
+subset_strategy: "flat_fair"
+num_clients: 4
+failure_rates: [2, 3]
+config: [ '../example_shared/datasets_config.yaml',
+          '../example_shared/logging_config.yaml' ]
