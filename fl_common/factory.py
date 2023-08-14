@@ -155,6 +155,7 @@ def create_client(
         trainer_configuration=client_config.trainer_config,
         metric_logger=client_wandb_metric_logger,
         device=client_config.device,
+        world_size = datasets_config.train_splits,
         datasets_dict=get_all_datasets(datasets_config=datasets_config.params),
         client_id=client_id,
     )

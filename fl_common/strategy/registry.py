@@ -111,9 +111,9 @@ def _default_strategy_params(params_dict):
     num_children = params_dict["num_children"]
     del params_dict["num_children"]
     if "fraction_fit" not in params_dict:
-        params_dict["fraction_fit"] = 1
+        params_dict["fraction_fit"] = 1.0
     if "fraction_evaluate" not in params_dict:
-        params_dict["fraction_evaluate"] = 1
+        params_dict["fraction_evaluate"] = 1.0
     if "min_available_clients" not in params_dict:
         params_dict["min_available_clients"] = num_children
     if "min_fit_clients" not in params_dict:

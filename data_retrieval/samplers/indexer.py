@@ -23,6 +23,7 @@ def _flat_fair(data_source: Container,
 
     indices = [i for i, sample in enumerate(data_source)
                if sample[1] in classes_to_include]
+    logger.info(f"Assigning {len(indices)} to client ith rank {rank}")
     return indices
 
 

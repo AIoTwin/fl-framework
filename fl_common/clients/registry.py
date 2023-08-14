@@ -133,7 +133,7 @@ class UnreliableTorchClient(TorchClient):
         model: nn.Module,
         client_id: str,
         client_trainer: ClientTrainer,
-        failure_rate: int,
+        fail_at_round: int,
         server_address: str,
         *args,
         **kwargs,
@@ -143,7 +143,8 @@ class UnreliableTorchClient(TorchClient):
         self.client_id = client_id
         self.model = model
         self.trainer = client_trainer
-        self.failure_rate = failure_rate
+        self.fail_at_round = fail_at_round * self.trainer.epochs
+        print(self.fail_at_round)
         self.count = 0
 
     @overrides
@@ -151,7 +152,7 @@ class UnreliableTorchClient(TorchClient):
         self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.count = self.count + 1
-        if self.count % self.failure_rate == 0:
+        if self.count % self.fail_at_round == 0:
             logger.info(
                 f"Client with id {self.client_id} failed - no training this round!"
             )
@@ -164,7 +165,7 @@ class UnreliableTorchClient(TorchClient):
     def evaluate(
         self, parameters, *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
-        if self.count % self.failure_rate == 0:
+        if self.count % self.fail_at_round == 0:
             logger.info(
                 f"Client with id {self.client_id} failed - no evaluation this round!"
             )
@@ -181,7 +182,7 @@ class UnreliableTorchClient(TorchClient):
     def start(self, log_str: Optional[str] = None):
         if log_str is None:
             log_str = (
-                f"Starting unreliable client (failure_rate={self.failure_rate}) "
+                f"Starting unreliable client (failure_rate={self.fail_at_round}) "
                 f"with id {self.client_id} connecting to server at {self.server_address}"
             )
         super().start(log_str=log_str)

@@ -2,7 +2,7 @@ device: 'cpu'
 
 trainer_config:
 train_config:
-server_address: '127.0.0.1:5051'
+server_address: '127.0.0.1:5050'
 train_dataset_id: 'cifar10/train'
 epochs: 2
 train_loader_params:

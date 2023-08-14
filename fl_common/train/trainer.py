@@ -27,6 +27,7 @@ class ClientTrainer:
             trainer_configuration: TrainerConfig,
             metric_logger: WandBMetricLogger,
             datasets_dict: Dict[str, Dataset],
+            world_size: int,
             client_id: int,
     ):
         self.device = device
@@ -34,12 +35,13 @@ class ClientTrainer:
         self.validation_configuration = trainer_configuration.validation_config
         self.test_configuration = trainer_configuration.test_config
         self.metric_logger = metric_logger
+        self.epochs = self.train_configuration.epochs
         train_set = datasets_dict[self.train_configuration.train_dataset_id]
         test_set = datasets_dict[self.validation_configuration.eval_dataset_id]
         sampler_indices = build_indices(strategy="flat_fair",
                                         data_source=train_set,
                                         rank=client_id,
-                                        world_size=2,
+                                        world_size=world_size,
                                         n_classes=10)
 
         # todo: iterate through each dataset in the dataset dict, and use the dataset_id as the key
@@ -56,7 +58,7 @@ class ClientTrainer:
             )
         }
         self.set_sizes = {
-            "train": len(train_set),
+            "train": len(sampler_indices),
             "test": len(test_set),
         }
         self.ckpt_path = trainer_configuration.ckpt_path
@@ -127,7 +129,7 @@ class ClientTrainer:
         grad_accum_step = self.train_configuration.grad_accum_steps
         criterion = get_criterion(self.train_configuration.criterion)
         iter_wise_scheduler = False  # todo: check if epoch or iterwise scheduler
-        for epoch in range(self.train_configuration.epochs):
+        for epoch in range(self.epochs):
             self.epoch = epoch
             # pre epoch processing
             ClientTrainer.train_one_epoch(

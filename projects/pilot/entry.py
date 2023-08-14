@@ -33,7 +33,7 @@ class PilotExperimentConfig:
 
     test_only: bool = False
     num_clients: int
-    failure_rates: List[int] = list()
+    failures_at_round: List[int] = list()
     logging_config: LoggingConfig
     dataset_config: DatasetsConfig
     subset_strategy: SubsetStrategy
@@ -50,13 +50,13 @@ def run(root_config: PilotExperimentConfig):
     )
     server_futures = []
     client_futures = []
-    num_unreliable_clients = len(root_config.failure_rates)
+    num_unreliable_clients = len(root_config.failures_at_round)
     num_reliable_clients = root_config.num_clients - num_unreliable_clients
     logger.info(
         f"Starting run with {root_config.num_clients} where {num_unreliable_clients} are unreliable"
     )
     with concurrent.futures.ProcessPoolExecutor(
-        max_workers=root_config.num_clients + 1
+        max_workers=None
     ) as executor:
         server_futures.append(
             executor.submit(
@@ -87,6 +87,8 @@ def run(root_config: PilotExperimentConfig):
                     [
                         "-c",
                         "config/example_pilot/client_config.yaml",
+                        "--DatasetsConfig.train_splits",
+                        f"{root_config.num_clients}",
                         "--ClientConfig.client_id",
                         f"{client_id}",
                     ]
@@ -95,8 +97,8 @@ def run(root_config: PilotExperimentConfig):
                             "--ClientConfig.client_type",
                             "UnreliableClient",
                             "--ClientConfig.client_params",
-                            "{'failure_rate': "
-                            + f"{root_config.failure_rates[client_id]}"
+                            "{'fail_at_round': "
+                            + f"{root_config.failures_at_round[client_id]}"
                             + "}",
                         ]
                         if client_id < num_unreliable_clients

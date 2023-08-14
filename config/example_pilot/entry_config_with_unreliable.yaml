@@ -1,5 +1,6 @@
 subset_strategy: "flat_fair"
-num_clients: 4
-failure_rates: [2, 3]
+# Attention: with the only strategy to distribute indices atm we need 10 mod num_clients == 0
+num_clients: 5
+failures_at_round: [1, 1  ]
 config: [ '../example_shared/datasets_config.yaml',
           '../example_shared/logging_config.yaml' ]

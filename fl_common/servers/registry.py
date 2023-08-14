@@ -64,13 +64,14 @@ class TorchServer(IFlowerServer):
         self,
         server_address: str,
         rounds: int,
-        strategy: Callable[..., Strategy],
+        strategy: Optional[Callable[..., Strategy]],
         *args,
         **kwargs,
     ):
         self.server_address = server_address
         self.rounds = rounds
-        self.strategy = strategy()
+        if strategy:
+            self.strategy = strategy()
 
     @property
     def model(self):
@@ -116,7 +117,7 @@ class TorchServerWithCentralizedEval(TorchServer):
         *args,
         **kwargs,
     ):
-        super().__init__(server_address, rounds, strategy, *args, **kwargs)
+        super().__init__(server_address, rounds, None, *args, **kwargs)
         self.strategy = strategy(evaluate_fn=self.centralized_eval)
 
         self.device = device
@@ -168,144 +169,6 @@ class TorchServerWithCentralizedEval(TorchServer):
         # do we need to return loss as a single float??
         return cross_entropy, {"accuracy": accuracy}
 
-
-# Todo: delete
-@register_flower_server
-class BidirectionalServer(TorchServer):
-    @property
-    def model(self):
-        return self._client.runnable_fl_entity.model
-
-    @model.setter
-    def model(self, model):
-        self._model = model
-
-    class _AnonymousClient(fl.client.NumPyClient):
-        def __init__(
-            self,
-            model: nn.Module,
-            device: str,
-            server_address: str,
-            test_loader: DataLoader,
-            eval_config: CentralTestConfig,
-            metric_logger: WandBMetricLogger,
-        ):
-            self.model = model
-            self.device = device
-            self.server_address = server_address
-            self.loader = test_loader
-            self.eval_config = eval_config
-            self.metric_logger = metric_logger
-
-        def evaluate(
-            self, parameters: NDArrays, config: Dict[str, Scalar]
-        ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
-            eval_config = self.eval_config
-            eval_metrics = get_eval_metrics(
-                metric_names=eval_config.central_eval_metrics
-            )
-            eval_metric = eval_metrics.get(eval_config.central_main_metric)
-            self.model.to(self.device)
-            state_dict = ndarray_to_weight_dict(
-                self.model.state_dict().keys(), parameters
-            )
-            self.model.load_state_dict(state_dict, strict=False)
-
-            name = eval_config.central_main_metric
-            prefix = "testing-local-aggregator"
-            result_dict = eval_metric.eval_func(
-                model=self.model,
-                data_loader=self.loader,
-                device=self.device,
-                title=f"{prefix.capitalize()} {name}:",
-                header="Testing at Local Aggregator",
-            )
-            self.metric_logger.wandblogger.log(
-                {
-                    f"{prefix}/{k}" if k != "epoch" else k: v
-                    for k, v in result_dict.items()
-                }
-            )
-            cross_entropy, accuracy = result_dict["Cross Entropy"], result_dict["acc@1"]
-            # do we need to return loss as a single float??
-            return (
-                float(cross_entropy),
-                len(self.loader.dataset),
-                {"accuracy": float(accuracy)},
-            )
-
-        def fit(
-            self, parameters, *args, **kwargs
-        ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
-            self.set_parameters(parameters)
-            # todo: Figure out whether I need to return set size here
-            return self.get_parameters(config={}), 0, {}
-
-        def get_parameters(self, config) -> List[np.ndarray]:
-            self.model.train()
-            return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
-
-        def set_parameters(self, parameters: List[np.ndarray]) -> None:
-            state_dict = ndarray_to_weight_dict(
-                self.model.state_dict().keys(), parameters
-            )
-            self.model.load_state_dict(state_dict, strict=False)
-
-        def start(self, *args, **kwargs):
-            logger.info(
-                f"Connecting child aggregator to parent at {self.server_address}"
-            )
-            fl.client.start_numpy_client(
-                server_address=self.server_address, client=self
-            )
-
-    def __init__(
-        self,
-        model: nn.Module,
-        device: str,
-        wandb_metric_logger: WandBMetricLogger,
-        test_config: CentralTestConfig,
-        server_address: str,
-        rounds: int,
-        test_set: Dataset,
-        strategy: Strategy,
-        parent_address: str,
-        *args,
-        **kwargs,
-    ):
-        super().__init__(
-            model,
-            device,
-            wandb_metric_logger,
-            test_config,
-            server_address,
-            rounds,
-            test_set,
-            strategy,
-        )
-        self.parent_address = parent_address
-        self._client = ThreadWrapper(
-            self._AnonymousClient(
-                model=model,
-                device=self.device,
-                server_address=parent_address,
-                test_loader=self.loader,
-                eval_config=self.test_config,
-                metric_logger=self.wandb_metric_logger,
-            )
-        )
-
-    def start(self):
-        self.wandb_metric_logger.wandblogger.init()
-        self._client.run()
-        logger.info(
-            f"Starting mid-level aggregator server at address {self.server_address}..."
-        )
-        fl.server.start_server(
-            server_address=self.server_address,
-            config=fl.server.ServerConfig(num_rounds=self.rounds),
-            strategy=self.strategy,
-        )
 
 
 def get_flower_server(name: str) -> Callable[..., TorchServer]:
