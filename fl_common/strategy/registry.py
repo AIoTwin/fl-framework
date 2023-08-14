@@ -118,7 +118,7 @@ def _default_strategy_params(params_dict):
         params_dict["min_available_clients"] = num_children
     if "min_fit_clients" not in params_dict:
         params_dict["min_fit_clients"] = num_children
-    if "min_eval_clients" not in params_dict:
+    if "min_evaluate_clients" not in params_dict:
         params_dict["min_evaluate_clients"] = num_children
 
 

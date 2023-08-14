@@ -67,10 +67,18 @@ def run(root_config: PilotExperimentConfig):
                     "config/example_pilot/aggregator_config.yaml",
                     "--AggregatorConfig.num_children",
                     f"{root_config.num_clients}",
+                    "--StrategyConfig.strategy_params",
+                    "{'min_available_clients': "
+                    + f"{num_reliable_clients},"
+                    + "'min_fit_clients': "
+                    + f"{num_reliable_clients},"
+                    + "'min_evaluate_clients': "
+                    + f"{num_reliable_clients}"
+                    + "}",
                 ],
             )
         )
-        # time.sleep(5)
+        time.sleep(5)
         for client_id in range(root_config.num_clients):
             client_futures.append(
                 executor.submit(
@@ -81,16 +89,19 @@ def run(root_config: PilotExperimentConfig):
                         "config/example_pilot/client_config.yaml",
                         "--ClientConfig.client_id",
                         f"{client_id}",
-                    ] + (
+                    ]
+                    + (
                         [
-                            "--ClientConfig.client_type", "UnreliableClient",
+                            "--ClientConfig.client_type",
+                            "UnreliableClient",
                             "--ClientConfig.client_params",
-                            "{'failure_rate': " + f"{root_config.failure_rates[client_id]}" + "}"
-
+                            "{'failure_rate': "
+                            + f"{root_config.failure_rates[client_id]}"
+                            + "}",
                         ]
                         if client_id < num_unreliable_clients
                         else ["--ClientConfig.client_type", "TorchClient"]
-                    )
+                    ),
                 )
             )
 

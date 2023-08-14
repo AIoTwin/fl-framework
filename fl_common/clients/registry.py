@@ -43,7 +43,7 @@ class TorchBaseClient(NumPyClient):
     def set_parameters(self, parameters: List[np.ndarray]) -> None:
         # Set model parameters from a list of NumPy ndarrays
         state_dict = ndarray_to_weight_dict(self.model.state_dict().keys(), parameters)
-        self.model.load_state_dict(state_dict, strict=False)
+        self.model.load_state_dict(state_dict, strict=True)
 
     def start(self, log_str: Optional[str] = None):
         if log_str is None:

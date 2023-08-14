@@ -147,7 +147,6 @@ class TorchServerWithCentralizedEval(TorchServer):
         # todo: Iterate through all eval metrics and then get results to return with the main_metric key
         eval_metric = eval_metrics.get(self.test_config.central_main_metric)
 
-        self.model = copy.deepcopy(self.model)
         self.model.to(self.device)
         state_dict = ndarray_to_weight_dict(self.model.state_dict().keys(), parameters)
         self.model.load_state_dict(state_dict, strict=False)

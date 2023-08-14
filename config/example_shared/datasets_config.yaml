@@ -10,7 +10,7 @@ params:
         dataset_id: &cifar10_train 'cifar10/train'
         params:
           root: *root_dir
-          train: False
+          train: True
           download: True
           transform_params:
             - type: 'RandomHorizontalFlip'

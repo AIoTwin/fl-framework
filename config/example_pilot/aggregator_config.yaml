@@ -1,9 +1,9 @@
-server_type: 'TorchServer'
+server_type: 'TorchServerWithCentralizedEval'
 device: 'cpu'
 #num_children: &total_clients
 
 server_address: '127.0.0.1:5051'
-rounds: 3
+rounds: 10
 
 strategy_config:
 strategy_type: "FedAvg"
