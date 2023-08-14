@@ -170,6 +170,24 @@ def create_client(
     return client
 
 
+def create_unreliable_client(
+        unreliable_client_config: UnreliableClientConfig,
+        client_id: int,
+        failure_rate:int,
+        client_trainer: ClientTrainer,
+        constructed_model: nn.Module
+) -> FlowerBaseClient:
+    client_cls = get_unreliable_client(name=unreliable_client_config.unreliable_client_type)
+    client = client_cls(
+        model=constructed_model,
+        client_id=client_id,
+        client_trainer=client_trainer,
+        failure_rate=failure_rate,
+        server_address=unreliable_client_config.server_address,
+        **unreliable_client_config.client_params)
+    return client
+
+
 # todo: delete
 # def create_server(
 #         server_config: ServerConfig,

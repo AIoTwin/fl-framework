@@ -1,4 +1,6 @@
-num_clients: 2
 subset_strategy: "flat_fair"
+num_reliable_clients: &num_reliable_clients 2
+num_unreliable_clients: &num_unreliable_clients 2
+failure_rate: [2, 3]
 config: [ 'config/example_config/datasets_config.yaml',
           'config/example_config/logging_config.yaml' ]

@@ -52,26 +52,19 @@ class TrainerConfig:
     ckpt_path: Optional[str]
 
 
+
+
 @spock
-class StrategyParams:
-    fraction_fit: int = 1
-    fraction_evaluate: int = 1
-    min_available_clients: Optional[int]
-    min_fit_clients: Optional[int]
-    min_evaluate_clients: Optional[int]
-    accept_failures: bool = False
+class ServerParams:
+    num_clients: int
+    server_address: str
+    rounds: int
 
 
 @spock
 class StrategyConfig:
     strategy_type: str = "FedAvg"
     strategy_params: Dict[str, object] = dict()
-
-    def __post_hook__(self):
-        if "factiona_fit" not in self.strategy_params:
-            self.strategy_params["fraction_fit"] = 1
-        if "fraction_evaluate" not in self.strategy_params:
-            self.strategy_params["fraction_evaluate"] = 1
 
 
 
@@ -86,6 +79,17 @@ class ClientConfig:
 
 
 @spock
+class UnreliableClientConfig:
+    unreliable_client_type: str
+    failure_rate: Optional[int]
+    client_id: Optional[str]  # override with spock cli when creating thread
+    device: str
+    server_address: Optional[str]  # override to dynamically asisigning server address (e.g., after clustering)
+    trainer_config: TrainerConfig
+    client_params: Dict[str, object] = dict()
+
+
+@spock
 class AggregatorConfig:
     parent_address: Optional[str]
     device: str
@@ -94,7 +98,6 @@ class AggregatorConfig:
     server_type: Optional[str]
     server_address: Optional[str]
     server_kwargs: Dict[str, object] = dict()
-
     rounds: Optional[int]
     # Number of expected children connections (Combination of other aggregators and clients)
     num_children: Optional[int]

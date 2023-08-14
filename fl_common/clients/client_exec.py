@@ -1,10 +1,6 @@
-import sys
-
-import torch.distributed
 from spock import SpockBuilder
 
 from data_retrieval import get_all_datasets
-from data_retrieval.samplers.indexer import build_indices
 from fl_common import factory
 from fl_common.factory import create_client
 from fl_common.train.trainer import ClientTrainer
