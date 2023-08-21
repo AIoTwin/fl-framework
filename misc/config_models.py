@@ -9,7 +9,7 @@ from spock import SpockBuilder, spock
 # Modeland Dataset classes are too diverse and constraining to statically type this
 @spock
 class DatasetsConfig:
-    train_splits: Optional[int]
+    train_splits: int = 5
     params: Dict[str, object]
 
 

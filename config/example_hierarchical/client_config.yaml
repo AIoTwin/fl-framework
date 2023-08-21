@@ -33,5 +33,5 @@ eval_loader_params:
 
 
 config: [ '../example_shared/logging_config.yaml',
-          '../example_shared/custom_model_config.yaml',
+          '../example_shared/model_config.yaml',
           '../example_shared/datasets_config.yaml' ]
