@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 from flwr.client import NumPyClient
-from overrides import overrides
 from torch import nn
 
 from fl_common.train.trainer import ClientTrainer
@@ -147,7 +146,6 @@ class UnreliableTorchClient(TorchClient):
         print(self.fail_at_round)
         self.count = 0
 
-    @overrides
     def fit(
         self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
@@ -161,7 +159,6 @@ class UnreliableTorchClient(TorchClient):
             self.trainer.train(self.model)
             return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
 
-    @overrides
     def evaluate(
         self, parameters, *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
