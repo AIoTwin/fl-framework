@@ -23,6 +23,7 @@ class SubsetStrategy(Enum):
     """
 
     flat_fair = "flat_fair"
+    flat_skewed = "flat_skewed"
 
 
 @spock
