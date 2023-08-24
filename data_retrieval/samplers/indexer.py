@@ -1,35 +1,54 @@
 import logging
+from math import ceil, floor
 from typing import Container, Dict, Optional
+
+from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
 
-def _flat_fair(data_source: Container,
+def _flat_fair(data_source: Dataset,
                n_classes,
                world_size,
                rank) -> Dict[int, list]:
     logger.info(f"Building indices for subsets for client with rank {rank}..")
-    # classes_per_worker = n_classes // world_size
-    # index_dict = dict()
-    # for rank in range(world_size):
-    #     classes_to_include = set(range(rank * classes_per_worker, (rank + 1) * classes_per_worker))
-    #
-    #     indices = [i for i, sample in enumerate(data_source)
-    #                if sample[1] in classes_to_include]
-    #     index_dict[rank] = indices
-    # return index_dict
-    classes_per_worker = n_classes // world_size
-    classes_to_include = set(range(rank * classes_per_worker, (rank + 1) * classes_per_worker))
-
-    indices = [i for i, sample in enumerate(data_source)
-               if sample[1] in classes_to_include]
-    logger.info(f"Assigning {len(indices)} to client ith rank {rank}")
-    return indices
+    class_samples = sort_samples_per_class(n_classes, data_source)
+    nr_of_samples = len(data_source.targets)
+    samples_per_client = ceil(nr_of_samples / world_size)
+    client_subsets = [[] for _ in range(world_size)]
+    sample_counter = 0
+    for class_nr, sublist in enumerate(class_samples):
+        for i, sample_idx in enumerate(sublist):
+            client_idx = floor(sample_counter / samples_per_client)
+            client_subsets[client_idx].append(sample_idx)
+            sample_counter += 1
+    return client_subsets[rank]
 
 
-def _flat_skewed(*args, **kwargs):
-    # todo
-    raise NotImplemented
+
+def sort_samples_per_class(n_classes, train_dataset):
+    class_indices = [[] for _ in range(n_classes)]
+    for i, (_, label) in enumerate(train_dataset):
+        class_indices[label].append(i)
+    return class_indices
+
+
+def _flat_skewed(data_source: Dataset,
+                 n_classes,
+                 world_size,
+                 rank) -> Dict[int, list]:
+    logger.info(f"Building indices for subsets for client with rank {rank}..")
+    class_samples = sort_samples_per_class(n_classes, data_source)
+
+    client_subsets = [[] for _ in range(world_size)]
+
+    for _, sublist in enumerate(class_samples):
+        for i, sample_idx in enumerate(sublist):
+            client_idx = i % world_size
+            client_subsets[client_idx].append(sample_idx)
+
+    logger.info(f"Assigning {len(client_subsets[rank])} to client ith rank {rank}")
+    return client_subsets[rank]
 
 
 def build_indices(strategy: str,
