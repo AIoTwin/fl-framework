@@ -1,7 +1,6 @@
-import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
-from spock import SpockBuilder, spock
+from spock import spock
 
 
 # TODO: Get device from a single shared source
@@ -9,7 +8,7 @@ from spock import SpockBuilder, spock
 # Modeland Dataset classes are too diverse and constraining to statically type this
 @spock
 class DatasetsConfig:
-    train_splits: int = 5
+    train_splits: int
     params: Dict[str, object]
 
 
@@ -53,7 +52,6 @@ class TrainerConfig:
     ckpt_path: Optional[str]
 
 
-
 @spock
 class ServerParams:
     num_clients: int
@@ -65,7 +63,6 @@ class ServerParams:
 class StrategyConfig:
     strategy_type: str = "FedAvg"
     strategy_params: Dict[str, object] = dict()
-
 
 
 @spock
@@ -101,7 +98,6 @@ class AggregatorConfig:
     rounds: Optional[int]
     # Number of expected children connections (Combination of other aggregators and clients)
     num_children: Optional[int]
-
 
 
 @spock
