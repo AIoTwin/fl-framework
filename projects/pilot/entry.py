@@ -23,6 +23,7 @@ class SubsetStrategy(Enum):
     """
 
     flat_fair = "flat_fair"
+    flat_skewed = "flat_skewed"
 
 
 @spock
@@ -87,8 +88,6 @@ def run(root_config: PilotExperimentConfig):
                     [
                         "-c",
                         "config/example_pilot/client_config.yaml",
-                        "--DatasetsConfig.train_splits",
-                        f"{root_config.num_clients}",
                         "--ClientConfig.client_id",
                         f"{client_id}",
                     ]
