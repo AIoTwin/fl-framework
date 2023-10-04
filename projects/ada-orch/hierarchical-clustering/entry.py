@@ -57,7 +57,7 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
         root_address = f"{entry_config.base_address}:{next(ports)}"
         root_config = root["base_config"]
         root_children = root["children"]
-        num_children = len(root_children.get("aggregators", [])) + len(root_children.get("clients", []))
+        num_children = len(root_children.get("aggregators", [])) + len(root_children.get("num_clients", []))
         global_agg_future = executor.submit(run_script,
                                             AGGREGATOR_EXEC,
                                             ["-c",
@@ -73,13 +73,12 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
             node: Dict = stack.pop()
             parent_address = node.get("parent_address")
             if node:
-                clients = node.get("clients", [])
                 aggregators = node.get("aggregators", [])
                 for aggregator_node in aggregators:
                     children = aggregator_node.get("children", [])
                     base_config = aggregator_node["base_config"]
                     aggregator_address = f"{entry_config.base_address}:{next(ports)}"
-                    num_children = len(children.get("aggregators", [])) + len(children.get("clients", []))
+                    num_children = len(children.get("aggregators", [])) + children.get("num_clients", [])
                     aggregator_futures[f"Parent={parent_address}"] = executor.submit(
                         run_script,
                         AGGREGATOR_EXEC,
@@ -89,23 +88,49 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                          f"--AggregatorConfig.parent_address", f"{parent_address}",
                          f"--AggregatorConfig.server_address", f"{aggregator_address}",
                          f"--AggregatorConfig.server_type", "TorchServer",
+                         "--StrategyConfig.strategy_params",
+                         "{'min_available_clients': "
+                         + f"{num_children},"
+                         + "'min_fit_clients': "
+                         + f"{num_children},"
+                         + "'min_evaluate_clients': "
+                         + f"{num_children}"
+                         + "}",
                          ]
                     )
                     time.sleep(5)
                     # only aggregators can have children
                     if children:
                         children["parent_address"] = aggregator_address
-                        stack.append(children)
-                for client_node in clients:
-                    client_config = client_node["base_config"]
-                    client_futures[f"Parent={parent_address}"].append(executor.submit(
-                        run_script,
-                        "fl_common/clients/client_exec.py",
-                        ["-c",
-                         client_config,
-                         f"--ClientConfig.client_id", f"{next(rank_counter)}",
-                         f"--ClientConfig.server_address",  f"{parent_address}"]
-                    ))
+                        for client_node_id in range(children.get("num_clients", [])):
+                            client_config = children["base_config"]
+                            failures_at_round = children["failures_at_round"]
+                            client_id = next(rank_counter)
+                            if client_id < len(failures_at_round):
+                                client_futures[f"Parent={aggregator_address}"].append(executor.submit(
+                                    run_script,
+                                    "fl_common/clients/client_exec.py",
+                                    ["-c",
+                                     client_config,
+                                     f"--ClientConfig.client_id", f"{client_id}",
+                                     f"--ClientConfig.server_address", f"{aggregator_address}",
+                                     "--ClientConfig.client_type", "UnreliableClient",
+                                     "--ClientConfig.client_params",
+                                     "{'fail_at_round': "
+                                     + f"{failures_at_round[client_id]}"
+                                     + "}",
+                                     ]
+                                ))
+                            else:
+                                client_futures[f"Parent={aggregator_address}"].append(executor.submit(
+                                    run_script,
+                                    "fl_common/clients/client_exec.py",
+                                    ["-c",
+                                     client_config,
+                                     f"--ClientConfig.client_id", f"{client_id}",
+                                     f"--ClientConfig.server_address", f"{aggregator_address}",
+                                     "--ClientConfig.client_type", "TorchClient"]
+                                ))
 
     print(aggregator_futures)
     print(client_futures)

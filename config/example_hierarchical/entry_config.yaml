@@ -5,25 +5,22 @@ topology:
     base_config: &aggregator_config 'config/example_hierarchical/aggregator_config.yaml'
     children:
       aggregators:
-        [{ base_config: *aggregator_config,
-            children: {
-              clients: [
-                { base_config: &client_config 'config/example_hierarchical/client_config.yaml' },
-                { base_config: *client_config }
-              ]
-            }
-        },
-          { base_config: *aggregator_config,
-            children: {
-              clients: [
-                { base_config: *client_config },
-                { base_config: *client_config },
-                { base_config: *client_config },
-              ]
-            }
-          },
+          [ { base_config: *aggregator_config,
+                      children: {
+                        num_clients: 2,
+                        failures_at_round: [1, 1],
+                        base_config: &client_config 'config/example_hierarchical/client_config.yaml'
+                      }
+                  },
+                    { base_config: *aggregator_config,
+                      children: {
+                        num_clients: 2,
+                        failures_at_round: [],
+                        base_config: *client_config
+                      }
+                    },
         ]
 
-subset_strategy: "flat_fair"
+subset_strategy: "flat_skewed"
 config: [ '../example_shared/datasets_config.yaml',
           '../example_shared/logging_config.yaml' ]
