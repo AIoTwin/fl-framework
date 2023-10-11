@@ -150,9 +150,13 @@ class UnreliableTorchClient(TorchClient):
             logger.info(
                 f"Client with id {self.client_id} failed - no training this round!"
             )
+            return parameters, self.trainer.set_sizes["train"], {}  # Return the same parameters, making this round a no-op
+        #todo return 0 throws error
+
         else:
+            self.set_parameters(parameters)
             self.trainer.train(self.model)
-        return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
+            return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
 
     def evaluate(
             self, parameters, *args, **kwargs

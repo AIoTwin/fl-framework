@@ -2,17 +2,14 @@
 TODO: Some generic Thread and process pool handler
 """
 import subprocess
-from threading import Thread
-from typing import Union
-import flwr as fl
 
 from log_infra import def_logger
+from threading import Thread
 
 logger = def_logger.getChild(__name__)
 
-
 CLIENT_EXEC = "fl_common/clients/client_exec.py"
-SERVER_EXEC = "fl_common/servers/server_exec.py"
+# SERVER_EXEC = "fl_common/servers/server_exec.py"
 AGGREGATOR_EXEC = "fl_common/aggregators/aggregator_exec.py"
 
 

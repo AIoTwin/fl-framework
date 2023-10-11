@@ -96,6 +96,7 @@ class AggregatorConfig:
     server_address: Optional[str]
     server_kwargs: Dict[str, object] = dict()
     rounds: Optional[int]
+    local_rounds: Optional[int]
     # Number of expected children connections (Combination of other aggregators and clients)
     num_children: Optional[int]
 
@@ -137,7 +138,7 @@ class ModelZooConfig:
     model_args: Dict[str, object]
     repo_or_dir: Optional[str]
     ckpt: str = "skip"
-
+    random_seed: Optional[int]
 
 @spock
 class BaseExperimentConfig:

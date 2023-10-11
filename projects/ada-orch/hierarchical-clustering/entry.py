@@ -2,10 +2,11 @@ import concurrent.futures
 import re
 import time
 from collections import defaultdict
+from itertools import count
 from typing import Dict, Iterable, List
 
 from spock import SpockBuilder, spock
-from itertools import count
+
 from fl_common.process_handler import AGGREGATOR_EXEC, run_script
 from log_infra import def_logger, prepare_local_log_file
 from misc.config_models import DatasetsConfig, LoggingConfig
@@ -105,7 +106,7 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                         for client_node_id in range(children.get("num_clients", [])):
                             client_config = children["base_config"]
                             failures_at_round = children["failures_at_round"]
-                            client_id = next(rank_counter)
+                            client_id = children.get("num_clients", []) - next(rank_counter)
                             if client_id < len(failures_at_round):
                                 client_futures[f"Parent={aggregator_address}"].append(executor.submit(
                                     run_script,

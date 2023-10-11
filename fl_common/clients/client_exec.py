@@ -1,22 +1,32 @@
-import sys
+import random
 
+import numpy as np
+import torch
 from spock import SpockBuilder
 
-from data_retrieval import get_all_datasets
-from fl_common import factory
 from fl_common.factory import create_client
-from fl_common.train.trainer import ClientTrainer
-from log_infra import build_wandb_metric_logger, def_logger, prepare_local_log_file
+from log_infra import def_logger, prepare_local_log_file
 from misc.config_models import (
     ClientConfig,
     DatasetsConfig,
     LoggingConfig,
     ModelZooConfig,
 )
-from misc.util import recursive_vars
-from models.registry import load_model_from_zoo
 
 logger = def_logger.getChild(__name__)
+
+
+def set_seed(seed):
+    if seed == -1:
+        return
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
 
 if __name__ == "__main__":
     config_space = SpockBuilder(
@@ -31,6 +41,7 @@ if __name__ == "__main__":
     model_config = config_space.ModelZooConfig
     client_config = config_space.ClientConfig
     datasets_config = config_space.DatasetsConfig
+    set_seed(model_config.random_seed)
     prepare_local_log_file(
         log_file_path=logging_config.local_logging_config.log_file_path,
         mode="a",
