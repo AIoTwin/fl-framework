@@ -1,13 +1,9 @@
-import threading
 from functools import partial
-
-import flwr as fl
-
 from typing import Any, Dict, Optional
 
 from torch import nn
-from torch.utils.data import Dataset
 
+import threading
 from data_retrieval import get_all_datasets
 from fl_common.aggregators.registry import Aggregator, AggregatorParentConnection
 from fl_common.clients import get_flower_client
@@ -21,7 +17,6 @@ from misc.config_models import (
     ClientConfig,
     DatasetsConfig,
     ModelZooConfig,
-    StrategyConfig,
     WandBConfig,
 )
 from misc.util import IterableSimpleNamespace, recursive_vars
@@ -33,10 +28,10 @@ def _create_model(device: str, zoo_config: Dict[str, Any]) -> nn.Module:
 
 
 def _create_wandb_metric_logger(
-    wandb_config: WandBConfig,
-    run_postfix: Optional[str] = None,
-    config_to_log: Optional[Dict[str, Any]] = None,
-    defer_init: bool = False,
+        wandb_config: WandBConfig,
+        run_postfix: Optional[str] = None,
+        config_to_log: Optional[Dict[str, Any]] = None,
+        defer_init: bool = False,
 ) -> WandBMetricLogger:
     return build_wandb_metric_logger(
         wandb_config=wandb_config,
@@ -52,10 +47,10 @@ def _create_datasets(dataset_config: Dict[str, Any]):
 
 
 def create_aggregator(
-    aggregator_config: AggregatorConfig,
-    model_config: ModelZooConfig,
-    wandb_config: WandBConfig,
-    datasets_config: DatasetsConfig,
+        aggregator_config: AggregatorConfig,
+        model_config: ModelZooConfig,
+        wandb_config: WandBConfig,
+        datasets_config: DatasetsConfig,
 ) -> Aggregator:
     wandb_metric_logger = _create_wandb_metric_logger(
         wandb_config=wandb_config,
@@ -74,17 +69,19 @@ def create_aggregator(
     }
 
     model = _create_model(aggregator_config.device, model_config)
+    rounds = aggregator_config.rounds
     if aggregator_config.parent_address:
         # create shared state
         server_lock = threading.Lock()
         client_lock = threading.Lock()
         server_lock.acquire()
         client_lock.acquire()
+        rounds = aggregator_config.rounds * aggregator_config.local_rounds
         shared_state = IterableSimpleNamespace(
             **{
                 "local_samples_processed": 0,
                 "current_local_round": 0,
-                "no_local_rounds": aggregator_config.num_children,
+                "no_local_rounds": aggregator_config.local_rounds,
                 "server_lock": server_lock,
                 "client_lock": client_lock,
                 "model": model,
@@ -131,17 +128,17 @@ def create_aggregator(
             **aggregator_config.server_kwargs,
             "strategy": strategy,
             "server_address": aggregator_config.server_address,
-            "rounds": aggregator_config.rounds,
+            "rounds": rounds,
         }
     )
     return Aggregator(server=aggregator_server, parent_connection=parent_connection)
 
 
 def create_client(
-    client_config: ClientConfig,
-    model_config: ModelZooConfig,
-    datasets_config: DatasetsConfig,
-    wandb_config: WandBConfig,
+        client_config: ClientConfig,
+        model_config: ModelZooConfig,
+        datasets_config: DatasetsConfig,
+        wandb_config: WandBConfig,
 ) -> TorchBaseClient:
     client_id = int(client_config.client_id)
     client_wandb_metric_logger = _create_wandb_metric_logger(
@@ -155,7 +152,7 @@ def create_client(
         trainer_configuration=client_config.trainer_config,
         metric_logger=client_wandb_metric_logger,
         device=client_config.device,
-        world_size = datasets_config.train_splits,
+        world_size=datasets_config.train_splits,
         datasets_dict=get_all_datasets(datasets_config=datasets_config.params),
         client_id=client_id,
     )
@@ -168,24 +165,3 @@ def create_client(
         **client_config.client_params,
     )
     return client
-
-
-# todo: delete
-# def create_unreliable_client(
-#         unreliable_client_config: UnreliableClientConfig,
-#         client_id: int,
-#         failure_rate:int,
-#         client_trainer: ClientTrainer,
-#         constructed_model: nn.Module
-# ) -> FlowerBaseClient:
-#     client_cls = get_unreliable_client(name=unreliable_client_config.unreliable_client_type)
-#     client = client_cls(
-#         model=constructed_model,
-#         client_id=client_id,
-#         client_trainer=client_trainer,
-#         failure_rate=failure_rate,
-#         server_address=unreliable_client_config.server_address,
-#         **unreliable_client_config.client_params)
-#     return client
-
-

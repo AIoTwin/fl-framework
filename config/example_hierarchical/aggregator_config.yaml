@@ -3,8 +3,8 @@ strategy_config:
 strategy_type: 'FedAvg'
 strategy_params:
   accept_failures: True
-rounds: 10
-local_rounds: 1
+rounds: 4
+local_rounds: 2
 central_test_config:
 central_eval_metrics: [ 'Accuracy' ]
 central_main_metric: 'Accuracy'
