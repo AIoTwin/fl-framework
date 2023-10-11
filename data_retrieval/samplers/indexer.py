@@ -58,7 +58,7 @@ def build_indices(strategy: str,
     if strategy == "flat_fair":
         return _flat_fair(data_source, *args, **kwargs)
     elif strategy == "flat_skewed":
-        return _flat_skewed(*args, **kwargs)
+        return _flat_skewed(data_source, *args, **kwargs)
     elif strategy == 'all_for_all':
         return None  # Won't use CustomSampler when indices are None
 

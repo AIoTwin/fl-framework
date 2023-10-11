@@ -9,4 +9,5 @@
 zoo_or_custom_model_name: 'NaiveNet'
 model_args:
   num_classes: 10
-random_seed: -1 #Set to -1 for non-determinism
+random_seed: 1 #Set to -1 for non-determinism
+subset_strategy: "flat_skewed"

@@ -27,6 +27,7 @@ class ClientTrainer:
             trainer_configuration: TrainerConfig,
             metric_logger: WandBMetricLogger,
             datasets_dict: Dict[str, Dataset],
+            strategy: str,
             world_size: int,
             client_id: int,
     ):
@@ -38,7 +39,7 @@ class ClientTrainer:
         self.epochs = self.train_configuration.epochs
         train_set = datasets_dict[self.train_configuration.train_dataset_id]
         test_set = datasets_dict[self.validation_configuration.eval_dataset_id]
-        sampler_indices = build_indices(strategy="flat_fair",
+        sampler_indices = build_indices(strategy=strategy,
                                         data_source=train_set,
                                         rank=client_id,
                                         world_size=world_size,

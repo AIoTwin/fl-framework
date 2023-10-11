@@ -8,7 +8,7 @@ topology:
           [ { base_config: *aggregator_config,
                       children: {
                         num_clients: 2,
-                        failures_at_round: [1, 1],
+                        failures_at_round: [2, 2],
                         base_config: &client_config 'config/example_hierarchical/client_config.yaml'
                       }
                   },
@@ -21,6 +21,5 @@ topology:
                     },
         ]
 
-subset_strategy: "flat_skewed"
 config: [ '../example_shared/datasets_config.yaml',
           '../example_shared/logging_config.yaml' ]

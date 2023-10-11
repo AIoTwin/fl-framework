@@ -139,6 +139,7 @@ class ModelZooConfig:
     repo_or_dir: Optional[str]
     ckpt: str = "skip"
     random_seed: Optional[int]
+    subset_strategy: str
 
 @spock
 class BaseExperimentConfig:

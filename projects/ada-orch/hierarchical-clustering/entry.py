@@ -25,7 +25,6 @@ class HierarchicalClusteringExperimentConfig:
     """
         Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
-    subset_strategy: str
     base_address: str
     port_range: str
     topology: Dict[str, object]

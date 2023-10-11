@@ -149,6 +149,7 @@ def create_client(
     )
     model = _create_model(client_config.device, model_config)
     client_trainer = ClientTrainer(
+        strategy=model_config.subset_strategy,
         trainer_configuration=client_config.trainer_config,
         metric_logger=client_wandb_metric_logger,
         device=client_config.device,
