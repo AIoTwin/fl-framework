@@ -106,7 +106,7 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                         for client_node_id in range(children.get("num_clients", [])):
                             client_config = children["base_config"]
                             failures_at_round = children["failures_at_round"]
-                            client_id = children.get("num_clients", []) - next(rank_counter)
+                            client_id = next(rank_counter)
                             if client_id < len(failures_at_round):
                                 client_futures[f"Parent={aggregator_address}"].append(executor.submit(
                                     run_script,
