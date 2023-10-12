@@ -1,4 +1,5 @@
 import functools
+import traceback
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import flwr as fl
@@ -47,9 +48,15 @@ class TorchBaseClient(NumPyClient):
         if log_str is None:
             log_str = f"Starting client connecting to {self.server_address}"
         logger.info(log_str)
-        # todo: Move metric logger to client and pass it to Trainer
-        # self.trainer.metric_logger.wandblogger.init()
-        fl.client.start_numpy_client(server_address=self.server_address, client=self)
+
+        while True:
+            try:
+                fl.client.start_numpy_client(server_address=self.server_address, client=self)
+            except Exception as e:
+                if "Unreliable Client failed - reconnect" in str(e):
+                    continue
+                else:
+                    break
 
 
 def register_flower_client(
@@ -147,12 +154,8 @@ class UnreliableTorchClient(TorchClient):
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.count = self.count + 1
         if self.count % self.fail_at_round == 0:
-            logger.info(
-                f"Client with id {self.client_id} failed - no training this round!"
-            )
-            return parameters, self.trainer.set_sizes["train"], {}  # Return the same parameters, making this round a no-op
-        #todo return 0 throws error
-
+            raise Exception("Unreliable Client failed - reconnect!")
+            return
         else:
             self.set_parameters(parameters)
             self.trainer.train(self.model)
