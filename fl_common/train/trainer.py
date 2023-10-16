@@ -41,7 +41,7 @@ class ClientTrainer:
         test_set = datasets_dict[self.validation_configuration.eval_dataset_id]
         sampler_indices = build_indices(strategy=strategy,
                                         data_source=train_set,
-                                        rank=client_id,
+                                        rank=int(client_id[1:]),
                                         world_size=world_size,
                                         n_classes=10)
 

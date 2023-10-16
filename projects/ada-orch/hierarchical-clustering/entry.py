@@ -112,7 +112,7 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                                     "fl_common/clients/client_exec.py",
                                     ["-c",
                                      client_config,
-                                     f"--ClientConfig.client_id", f"{client_id}",
+                                     f"--ClientConfig.client_id", f"h{client_id}",
                                      f"--ClientConfig.server_address", f"{aggregator_address}",
                                      "--ClientConfig.client_type", "UnreliableClient",
                                      "--ClientConfig.client_params",
@@ -127,7 +127,7 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                                     "fl_common/clients/client_exec.py",
                                     ["-c",
                                      client_config,
-                                     f"--ClientConfig.client_id", f"{client_id}",
+                                     f"--ClientConfig.client_id", f"h{client_id}",
                                      f"--ClientConfig.server_address", f"{aggregator_address}",
                                      "--ClientConfig.client_type", "TorchClient"]
                                 ))

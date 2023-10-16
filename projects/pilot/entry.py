@@ -89,7 +89,7 @@ def run(root_config: PilotExperimentConfig):
                         "-c",
                         "config/example_pilot/client_config.yaml",
                         "--ClientConfig.client_id",
-                        f"{client_id}",
+                        "p"+f"{client_id}",
                     ]
                     + (
                         [

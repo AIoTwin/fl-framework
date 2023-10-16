@@ -140,7 +140,7 @@ def create_client(
         datasets_config: DatasetsConfig,
         wandb_config: WandBConfig,
 ) -> TorchBaseClient:
-    client_id = int(client_config.client_id)
+    client_id = client_config.client_id
     client_wandb_metric_logger = _create_wandb_metric_logger(
         wandb_config=wandb_config,
         config_to_log=recursive_vars(client_config),

@@ -1,4 +1,5 @@
 import functools
+import time
 import traceback
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -54,6 +55,7 @@ class TorchBaseClient(NumPyClient):
                 fl.client.start_numpy_client(server_address=self.server_address, client=self)
             except Exception as e:
                 if "Unreliable Client failed - reconnect" in str(e):
+                    time.sleep(2)
                     continue
                 else:
                     break
@@ -154,8 +156,9 @@ class UnreliableTorchClient(TorchClient):
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.count = self.count + 1
         if self.count % self.fail_at_round == 0:
-            raise Exception("Unreliable Client failed - reconnect!")
-            return
+            if 'p' in self.client_id:
+                raise Exception("Unreliable Client failed - reconnect!")
+            return self.get_parameters(config={}), -1, {}
         else:
             self.set_parameters(parameters)
             self.trainer.train(self.model)
@@ -164,22 +167,14 @@ class UnreliableTorchClient(TorchClient):
     def evaluate(
             self, parameters, *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
-        if self.count % self.fail_at_round == 0:
-            logger.info(f"Client with id {self.client_id} failed - no evaluation this round!")
-            return (
-                float('nan'),
-                self.trainer.set_sizes["test"],
-                {"accuracy": float('nan')},
-            )
-        else:
-            self.set_parameters(parameters)
-            result_dict = self.trainer.validate(self.model)
-            loss, accuracy = result_dict["Cross Entropy"], result_dict["acc@1"]
-            return (
-                float(loss),
-                self.trainer.set_sizes["test"],
-                {"accuracy": float(accuracy)},
-            )
+        self.set_parameters(parameters)
+        result_dict = self.trainer.validate(self.model)
+        loss, accuracy = result_dict["Cross Entropy"], result_dict["acc@1"]
+        return (
+            float(loss),
+            self.trainer.set_sizes["test"],
+            {"accuracy": float(accuracy)},
+        )
 
     def start(self, log_str: Optional[str] = None):
         if log_str is None:
