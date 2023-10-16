@@ -70,11 +70,11 @@ def run(root_config: PilotExperimentConfig):
                     f"{root_config.num_clients}",
                     "--StrategyConfig.strategy_params",
                     "{'min_available_clients': "
-                    + f"{num_reliable_clients},"
+                    + f"{root_config.num_clients},"
                     + "'min_fit_clients': "
-                    + f"{num_reliable_clients},"
+                    + f"{root_config.num_clients},"
                     + "'min_evaluate_clients': "
-                    + f"{num_reliable_clients}"
+                    + f"{root_config.num_clients}"
                     + "}",
                 ],
             )

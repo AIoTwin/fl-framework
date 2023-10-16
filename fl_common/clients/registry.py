@@ -1,7 +1,7 @@
 import functools
-import flwr as fl
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import flwr as fl
 import numpy as np
 from flwr.client import NumPyClient
 from torch import nn
@@ -9,7 +9,6 @@ from torch import nn
 from fl_common.train.trainer import ClientTrainer
 from log_infra import def_logger
 from misc.util import ndarray_to_weight_dict
-
 
 _CLIENT_REGISTRY = dict()
 
@@ -22,12 +21,12 @@ class TorchBaseClient(NumPyClient):
     """
 
     def __init__(
-        self,
-        model: nn.Module,
-        server_address: str,
-        set_sizes: Optional[Dict[str, int]] = None,
-        *args,
-        **kwargs,
+            self,
+            model: nn.Module,
+            server_address: str,
+            set_sizes: Optional[Dict[str, int]] = None,
+            *args,
+            **kwargs,
     ):
         self.server_address = server_address
         self.model = model
@@ -54,7 +53,7 @@ class TorchBaseClient(NumPyClient):
 
 
 def register_flower_client(
-    _func: TorchBaseClient = None, *, name: Optional[str] = None
+        _func: TorchBaseClient = None, *, name: Optional[str] = None
 ):
     def decorator_register(cls: TorchBaseClient):
         @functools.wraps(cls)
@@ -74,25 +73,23 @@ def register_flower_client(
 @register_flower_client(name="TorchClient")
 class TorchClient(TorchBaseClient):
     def __init__(
-        self,
-        model: nn.Module,
-        server_address: str,
-        client_id: str,
-        client_trainer: ClientTrainer,
-        monitor: bool = False,  # ???
-        *args,
-        **kwargs,
+            self,
+            model: nn.Module,
+            server_address: str,
+            client_id: str,
+            client_trainer: ClientTrainer,
+            *args,
+            **kwargs,
     ):
         super().__init__(model, server_address, *args, **kwargs)
         logger.debug(f"Constructing client with id: {client_id}")
         self.client_id = client_id
         # Client should have control to select its subset of data
         self.trainer = client_trainer
-        self.monitor = monitor
         self.set_sizes = client_trainer.set_sizes
 
     def fit(
-        self, parameters: List[np.array], config: Dict[str, Any], *args, **kwargs
+            self, parameters: List[np.array], config: Dict[str, Any], *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         """
         :parameters: model weights as list of numpy arrays
@@ -103,7 +100,7 @@ class TorchClient(TorchBaseClient):
         return self.get_parameters(config={}), self.set_sizes["train"], {}
 
     def evaluate(
-        self, parameters: List[np.array], config: Dict[str, Any], *args, **kwargs
+            self, parameters: List[np.array], config: Dict[str, Any], *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
         """
         :parameters: model weights as list of numpy arrays
@@ -128,26 +125,25 @@ class TorchClient(TorchBaseClient):
 @register_flower_client(name="UnreliableClient")
 class UnreliableTorchClient(TorchClient):
     def __init__(
-        self,
-        model: nn.Module,
-        client_id: str,
-        client_trainer: ClientTrainer,
-        fail_at_round: int,
-        server_address: str,
-        *args,
-        **kwargs,
+            self,
+            model: nn.Module,
+            client_id: str,
+            client_trainer: ClientTrainer,
+            fail_at_round: int,
+            server_address: str,
+            *args,
+            **kwargs,
     ):
         logger.debug(f"Constructing unreliable client with id: {client_id}")
         self.server_address = server_address
         self.client_id = client_id
         self.model = model
         self.trainer = client_trainer
-        self.fail_at_round = fail_at_round * self.trainer.epochs
-        print(self.fail_at_round)
+        self.fail_at_round = fail_at_round
         self.count = 0
 
     def fit(
-        self, parameters, *args, **kwargs
+            self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
         self.count = self.count + 1
         if self.count % self.fail_at_round == 0:
@@ -155,16 +151,18 @@ class UnreliableTorchClient(TorchClient):
                 f"Client with id {self.client_id} failed - no training this round!"
             )
         else:
-            self.set_parameters(parameters)
             self.trainer.train(self.model)
-            return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
+        return self.get_parameters(config={}), self.trainer.set_sizes["train"], {}
 
     def evaluate(
-        self, parameters, *args, **kwargs
+            self, parameters, *args, **kwargs
     ) -> Tuple[float, int, Dict[str, Any]]:
         if self.count % self.fail_at_round == 0:
-            logger.info(
-                f"Client with id {self.client_id} failed - no evaluation this round!"
+            logger.info(f"Client with id {self.client_id} failed - no evaluation this round!")
+            return (
+                float('nan'),
+                self.trainer.set_sizes["test"],
+                {"accuracy": float('nan')},
             )
         else:
             self.set_parameters(parameters)
