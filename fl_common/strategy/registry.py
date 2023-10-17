@@ -55,15 +55,15 @@ class StrategyWithLockingWrapper(Strategy):
             server_round, new_results, new_fails
         )
 
-        self._shared_state.model.load_state_dict(
-            ndarray_to_weight_dict(self._shared_state.model.state_dict().keys(),
-                                   parameters_to_ndarrays(parameters_aggregated))
-        )
-
-        local_samples_processed = 0
-        for _, fit_res in new_results:
-            local_samples_processed += fit_res.num_examples
-        self._shared_state.local_samples_processed = local_samples_processed
+        if parameters_aggregated:
+            self._shared_state.model.load_state_dict(
+                ndarray_to_weight_dict(self._shared_state.model.state_dict().keys(),
+                                       parameters_to_ndarrays(parameters_aggregated))
+            )
+            local_samples_processed = 0
+            for _, fit_res in new_results:
+                local_samples_processed += fit_res.num_examples
+            self._shared_state.local_samples_processed = local_samples_processed
 
         self._shared_state.current_local_round += 1
 
