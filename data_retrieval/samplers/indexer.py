@@ -1,4 +1,5 @@
 import logging
+import random
 from math import ceil, floor
 from typing import Container, Dict, Optional
 
@@ -22,6 +23,7 @@ def _flat_fair(data_source: Dataset,
             client_idx = floor(sample_counter / samples_per_client)
             client_subsets[client_idx].append(sample_idx)
             sample_counter += 1
+    random.shuffle(client_subsets[rank])
     return client_subsets[rank]
 
 
@@ -48,6 +50,7 @@ def _flat_skewed(data_source: Dataset,
             client_subsets[client_idx].append(sample_idx)
 
     logger.info(f"Assigning {len(client_subsets[rank])} to client ith rank {rank}")
+    random.shuffle(client_subsets[rank])
     return client_subsets[rank]
 
 
