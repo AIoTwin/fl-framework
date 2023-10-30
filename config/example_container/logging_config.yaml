@@ -1,0 +1,8 @@
+wandb_config:
+project: 'pilot_8_clients_2ep_100r_non_failing_bs_16'
+entity: 'aiotwins'
+run_name: 'example_run'
+enabled: True
+local_logging_config:
+log_file_path: 'logs/example/example.log'
+scalar_freq: 100

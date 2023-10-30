@@ -26,7 +26,7 @@ class SubsetStrategy(Enum):
 
 
 @spock
-class ClientEntryConfig:
+class GlobalServerEntryConfig:
     """
     Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
