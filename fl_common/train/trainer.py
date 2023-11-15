@@ -32,7 +32,7 @@ class ClientTrainer:
             client_id: int,
             model_config: ModelZooConfig
     ):
-        self.device = devicere
+        self.device = device
         self.train_configuration = trainer_configuration.train_config
         self.validation_configuration = trainer_configuration.validation_config
         self.test_configuration = trainer_configuration.test_config
