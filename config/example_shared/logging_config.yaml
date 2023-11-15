@@ -1,6 +1,6 @@
 wandb_config:
-project: 'example_project'
-entity: 'aiotwin-wandb'
+project: 'test_different_number_of_clients'
+entity: 'aiotwins'
 run_name: 'example_run'
 enabled: False
 local_logging_config:

@@ -37,7 +37,6 @@ class PilotExperimentConfig:
     failures_at_round: List[int] = list()
     logging_config: LoggingConfig
     dataset_config: DatasetsConfig
-    subset_strategy: SubsetStrategy
 
 
 logger = def_logger.getChild(__name__)

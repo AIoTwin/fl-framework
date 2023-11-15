@@ -1,4 +1,3 @@
-subset_strategy: "flat_skewed"
 # Attention: with the only strategy to distribute indices atm we need 10 mod num_clients == 0
 num_clients: 1
 failures_at_round: []

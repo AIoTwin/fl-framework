@@ -156,6 +156,7 @@ def create_client(
         world_size=datasets_config.train_splits,
         datasets_dict=get_all_datasets(datasets_config=datasets_config.params),
         client_id=client_id,
+        model_config=model_config
     )
     client_cls = get_flower_client(name=client_config.client_type)
     client = client_cls(
