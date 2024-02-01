@@ -1,8 +1,8 @@
 wandb_config:
-project: 'test_different_number_of_clients'
+project: '2_classes_per_client_60_splits'
 entity: 'aiotwins'
 run_name: 'example_run'
-enabled: False
+enabled: True
 local_logging_config:
 log_file_path: 'logs/example/example.log'
 scalar_freq: 100

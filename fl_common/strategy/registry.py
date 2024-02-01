@@ -13,7 +13,7 @@ from flwr.common import (
 )
 from flwr.server import ClientManager
 from flwr.server.client_proxy import ClientProxy
-from flwr.server.grpc_server.grpc_bridge import GrpcBridgeClosed
+from flwr.server.fleet.grpc_bidi.grpc_bridge import GrpcBridgeClosed
 from flwr.server.strategy import Strategy
 
 from misc.util import IterableSimpleNamespace, ndarray_to_weight_dict

@@ -3,7 +3,7 @@ device: 'cpu' #cuda
 #num_children: &total_clients
 
 server_address: '127.0.0.1:5050'
-rounds: 200
+rounds: 87
 
 strategy_config:
 strategy_type: "FedAvg"

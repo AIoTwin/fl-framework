@@ -1,6 +1,7 @@
 import functools
 import time
 import traceback
+import random
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import flwr as fl
@@ -138,7 +139,7 @@ class UnreliableTorchClient(TorchClient):
             model: nn.Module,
             client_id: str,
             client_trainer: ClientTrainer,
-            fail_at_round: int,
+            failure_rate: float,
             server_address: str,
             *args,
             **kwargs,
@@ -148,15 +149,15 @@ class UnreliableTorchClient(TorchClient):
         self.client_id = client_id
         self.model = model
         self.trainer = client_trainer
-        self.fail_at_round = fail_at_round
-        self.count = 0
-
+        self.failure_rate = failure_rate
+        random.seed() #reset the random seed for failing clients
     def fit(
             self, parameters, *args, **kwargs
     ) -> Tuple[List[np.ndarray], int, Dict[str, Any]]:
-        self.count = self.count + 1
-        if self.count % self.fail_at_round == 0:
+        random_number = random.random()
+        if random_number < self.failure_rate:
             if 'p' in self.client_id:
+                print(str(random_number))
                 raise Exception("Unreliable Client failed - reconnect!")
             return self.get_parameters(config={}), -1, {}
         else:
@@ -179,7 +180,7 @@ class UnreliableTorchClient(TorchClient):
     def start(self, log_str: Optional[str] = None):
         if log_str is None:
             log_str = (
-                f"Starting unreliable client (failure_rate={self.fail_at_round}) "
+                f"Starting unreliable client (failure_rate={self.failure_rate}) "
                 f"with id {self.client_id} connecting to server at {self.server_address}"
             )
         super().start(log_str=log_str)

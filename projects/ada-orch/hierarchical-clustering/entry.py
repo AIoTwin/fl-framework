@@ -74,7 +74,9 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
             parent_address = node.get("parent_address")
             if node:
                 aggregators = node.get("aggregators", [])
+                first_aggr=True
                 for aggregator_node in aggregators:
+                    print(str(aggregator_node))
                     children = aggregator_node.get("children", [])
                     base_config = aggregator_node["base_config"]
                     aggregator_address = f"{entry_config.base_address}:{next(ports)}"
@@ -104,9 +106,14 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                         children["parent_address"] = aggregator_address
                         for client_node_id in range(children.get("num_clients", [])):
                             client_config = children["base_config"]
-                            failures_at_round = children["failures_at_round"]
+                            failure_rate = children["failure_rate"]
                             client_id = next(rank_counter)
-                            if client_id < len(failures_at_round):
+                            if first_aggr:
+                                client_id=client_id*2
+                            else:
+                                client_id = client_id * 2 +1
+                            print(client_id)
+                            if client_id < len(failure_rate):
                                 client_futures[f"Parent={aggregator_address}"].append(executor.submit(
                                     run_script,
                                     "fl_common/clients/client_exec.py",
@@ -116,8 +123,8 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                                      f"--ClientConfig.server_address", f"{aggregator_address}",
                                      "--ClientConfig.client_type", "UnreliableClient",
                                      "--ClientConfig.client_params",
-                                     "{'fail_at_round': "
-                                     + f"{failures_at_round[client_id]}"
+                                     "{'failure_rate': "
+                                     + f"{failure_rate[1]}"
                                      + "}",
                                      ]
                                 ))
@@ -131,7 +138,8 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                                      f"--ClientConfig.server_address", f"{aggregator_address}",
                                      "--ClientConfig.client_type", "TorchClient"]
                                 ))
-
+                    first_aggr=False
+                    rank_counter = count()
     print(aggregator_futures)
     print(client_futures)
 

@@ -1,18 +1,18 @@
-device: 'cpu'
+device: 'cuda:1'
 
 trainer_config:
 train_config:
 train_dataset_id: 'cifar10/train'
-epochs: 2
+epochs: 5
 train_loader_params:
-  batch_size: 4
+  batch_size: 16
   num_workers: 0
   shuffle: True
   pin_memory: True
 optimizer:
   type: 'SGD'
   params:
-    lr: 0.01
+    lr: 0.001
 #    momentum: 0.9
 #    weight_decay: 0.0001
 criterion:
@@ -25,7 +25,7 @@ main_metric: 'Accuracy'
 eval_metrics: [ 'Accuracy' ]
 eval_dataset_id: 'cifar10/val'
 eval_loader_params:
-  batch_size: 16
+  batch_size: 1
   num_workers: 0
   shuffle: False
   pin_memory: True

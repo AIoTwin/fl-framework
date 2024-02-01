@@ -1,10 +1,10 @@
-device: 'cpu'
+device: 'cuda:0'
 
 trainer_config:
 train_config:
 server_address: '127.0.0.1:5050'
 train_dataset_id: 'cifar10/train'
-epochs: 2
+epochs: 10
 train_loader_params:
   batch_size: 16
   num_workers: 0
@@ -13,7 +13,7 @@ train_loader_params:
 optimizer:
   type: 'SGD'
   params:
-    lr: 0.01
+    lr: 0.001
     #momentum: 0.9
 #    weight_decay: 0.0001
 criterion:

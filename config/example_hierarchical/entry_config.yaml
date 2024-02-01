@@ -7,15 +7,16 @@ topology:
       aggregators:
           [ { base_config: *aggregator_config,
                       children: {
-                        num_clients: 2,
-                        failures_at_round: [2, 2],
+                        num_clients: 5,
+                        failure_rate: [],
                         base_config: &client_config 'config/example_hierarchical/client_config.yaml'
                       }
                   },
+
                     { base_config: *aggregator_config,
                       children: {
-                        num_clients: 2,
-                        failures_at_round: [],
+                        num_clients: 5,
+                        failure_rate: [],
                         base_config: *client_config
                       }
                     },

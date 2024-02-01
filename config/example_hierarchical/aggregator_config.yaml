@@ -1,4 +1,4 @@
-device: 'cpu'
+device: 'cuda:1'
 strategy_config:
 strategy_type: 'FedAvg'
 strategy_params:
