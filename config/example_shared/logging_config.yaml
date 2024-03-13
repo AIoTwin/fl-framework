@@ -1,5 +1,5 @@
 wandb_config:
-project: '2_classes_per_client_60_splits'
+project: '2_classes_per_client_20_splits'
 entity: 'aiotwins'
 run_name: 'example_run'
 enabled: True

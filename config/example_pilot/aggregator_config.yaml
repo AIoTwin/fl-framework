@@ -1,9 +1,9 @@
 server_type: 'TorchServerWithCentralizedEval'
-device: 'cpu' #cuda
+device: 'cuda:0' #cuda
 #num_children: &total_clients
 
 server_address: '127.0.0.1:5050'
-rounds: 87
+rounds: 100
 
 strategy_config:
 strategy_type: "FedAvg"

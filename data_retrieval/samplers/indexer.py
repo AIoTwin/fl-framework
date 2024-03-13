@@ -24,7 +24,7 @@ def _flat_fair(data_source: Dataset,
             client_idx = floor(sample_counter / samples_per_client)
             client_subsets[client_idx].append(sample_idx)
             sample_counter += 1
-    current_subset = client_subsets[(int(world_size / n_classes) * rank) % world_size]
+    current_subset = client_subsets[(int(world_size / n_classes) * rank) % world_size + int(rank / n_classes)]
     random.shuffle(current_subset)
     return current_subset
 
@@ -36,16 +36,22 @@ def _flat_fair_2_classes_per_client(data_source: Dataset,
     logger.info(f"Building indices for subsets for client with rank {rank}..")
     class_samples = sort_samples_per_class(n_classes, data_source)
     nr_of_samples = len(data_source.targets)
-    samples_per_client = ceil(nr_of_samples / world_size)
-    client_subsets = [[] for _ in range(world_size)]
+    samples_per_client = np.ceil(nr_of_samples / (world_size*2))
+    client_subsets = [[] for _ in range(world_size*2)]
     sample_counter = 0
     for class_nr, sublist in enumerate(class_samples):
         for i, sample_idx in enumerate(sublist):
             client_idx = floor(sample_counter / samples_per_client)
             client_subsets[client_idx].append(sample_idx)
             sample_counter += 1
-    current_subset = client_subsets[(int(world_size / n_classes) * rank) % world_size] + client_subsets[
-        ((int(world_size / n_classes) * (rank + 1)) + 1) % world_size]
+    samples_per_class = nr_of_samples / n_classes
+    jumps = int(samples_per_class / samples_per_client)
+    index_list = [
+        [i, i + jumps]
+        for offset in range(4)  # Adjust the range as needed
+        for i in range(offset, (world_size * 2 - 2), jumps * 2)
+    ]
+    current_subset =client_subsets[index_list[rank][0]] + client_subsets[index_list[rank][1]]
     random.shuffle(current_subset)
     return current_subset
 
@@ -88,5 +94,3 @@ def build_indices(strategy: str, data_source: Dict[str, Dataset], rank: int, wor
         return _flat_fair_2_classes_per_client(data_source, n_classes, world_size, rank, *args, **kwargs)
     elif strategy == 'all_for_all':
         return None  # Won't use CustomSampler when indices are None
-
-    raise ValueError(f"Strategy {strategy} not implemented")

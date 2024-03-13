@@ -66,6 +66,7 @@ class ClientTrainer:
         }
         self.ckpt_path = trainer_configuration.ckpt_path
         self.epoch = 0
+        self.round = 0
 
     @staticmethod
     def train_one_epoch(
@@ -146,7 +147,9 @@ class ClientTrainer:
                 log_freq=self.train_configuration.log_freq,
                 epoch=epoch,
             )
-            # post epoch processing
+        self.round += 1
+        self.validate(model=model, test_mode=False)
+        # post epoch processing
 
     def validate(self, model: nn.Module, test_mode: bool = False) -> Dict[str, float]:
 
@@ -159,8 +162,11 @@ class ClientTrainer:
         if isinstance(eval_metrics, str):
             eval_metrics = [eval_metrics]
         eval_metrics = get_eval_metrics(eval_metrics)
-        result_dict = dict({"epoch": self.epoch})
         prefix = "testing" if test_mode else "validation"
+        if prefix == "validation":
+            result_dict = dict({"epoch": self.round})
+        else:
+            result_dict = dict({"epoch": self.epoch})
         for name, eval_metric in eval_metrics.items():
             res = eval_metric.eval_func(
                 model=model,

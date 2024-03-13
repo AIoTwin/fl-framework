@@ -15,10 +15,11 @@ from misc.config_models import (
 
 
 def set_seed(seed):
-    if seed == -1:
-        return
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+    if seed == -1:
+        return
 
     random.seed(seed)
     np.random.seed(seed)
