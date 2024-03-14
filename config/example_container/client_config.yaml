@@ -1,15 +1,15 @@
 device: 'cpu'
 
-client_id: '4'
+client_id: '1'
 client_type: 'TorchClient'
+server_address: '192.168.18.11:5000'
 
 trainer_config:
 train_config:
-server_address: '192.168.18.11:5020'
 train_dataset_id: 'cifar10/train'
 epochs: 2
 train_loader_params:
-  batch_size: 64
+  batch_size: 16
   num_workers: 0
   shuffle: True
   pin_memory: True
@@ -29,12 +29,12 @@ main_metric: 'Accuracy'
 eval_metrics: [ 'Accuracy' ]
 eval_dataset_id: 'cifar10/val'
 eval_loader_params:
-  batch_size: 128
+  batch_size: 16
   num_workers: 0
   shuffle: False
   pin_memory: True
 
 
-config: [ '../example_client/logging_config.yaml',
-          '../example_client/model_config.yaml',
-          '../example_client/datasets_config.yaml' ]
+#config: [ 'logging_config.yaml',
+#          'model_config.yaml',
+#          'datasets_config.yaml' ]

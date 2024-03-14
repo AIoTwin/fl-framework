@@ -7,9 +7,22 @@ from spock import SpockBuilder, spock
 
 from fl_common.process_handler import AGGREGATOR_EXEC, CLIENT_EXEC, run_script
 from log_infra import def_logger, prepare_local_log_file
-from misc.config_models import ClientConfig, DatasetsConfig, LoggingConfig, ModelZooConfig
+from misc.config_models import ClientConfig, DatasetsConfig, LoggingConfig
 
 logger = def_logger.getChild(__name__)
+
+
+class SubsetStrategy(Enum):
+    """
+    All strategies we want to try out to distribute subsets
+    E.g.,
+     Each client gets distinct classes but the same number of sample/classes,
+     Each client gets a different number of samples/classes
+     Clients within a cluster can share classes, etc.
+
+    """
+
+    flat_fair = "flat_fair"
 
 
 @spock
@@ -18,10 +31,10 @@ class ClientEntryConfig:
     Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
     test_only: bool = False
-    client_config: ClientConfig
-    model_config: ModelZooConfig
+    train_split: int
     datasets_config: DatasetsConfig
     logging_config: LoggingConfig
+    subset_strategy: SubsetStrategy
 
 
 logger = def_logger.getChild(__name__)
@@ -45,7 +58,7 @@ def run(root_config: ClientEntryConfig):
             CLIENT_EXEC,
             [
                 "-c",
-                "config/example_container/client_config.yaml",
+                "config/example_client/client_config.yaml",
             ])
 
 

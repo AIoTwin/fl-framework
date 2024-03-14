@@ -1,9 +1,16 @@
+server_type: 'TorchServerWithCentralizedEval'
 device: 'cpu'
-strategy_config:
-strategy_type: 'FedAvg'
-strategy_params:
-  accept_failures: True
+#num_children: &total_clients
+
+server_address: '0.0.0.0:5000'
 rounds: 10
+
+strategy_config:
+strategy_type: "FedAvg"
+#  min_available_clients: 4 #clients used during training
+#  min_fit_clients: 4 #min clients during validation
+#  min_evaluate_clients: 4 #min clients in the system
+
 central_test_config:
 central_eval_metrics: [ 'Accuracy' ]
 central_main_metric: 'Accuracy'

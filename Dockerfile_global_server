@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt && pip install spock-config==3.0.2 --no-deps
 
 COPY . /app/
 
-CMD [ "python3", "projects/client/entry.py", "--config", "config/example_client/entry_client.yaml" ]
+CMD [ "python3", "projects/global_server/entry.py", "--config", "config/example_global_server/entry_server.yaml" ]

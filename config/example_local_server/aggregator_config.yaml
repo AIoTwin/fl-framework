@@ -1,8 +1,9 @@
-server_type: 'TorchServerWithCentralizedEval'
+server_type: 'TorchServer'
 device: 'cpu'
-#num_children: &total_clients
+num_children: 2
 
-server_address: '0.0.0.0:5000'
+server_address: '0.0.0.0:5020'
+parent_address: '0.0.0.0:5000'
 rounds: 10
 
 strategy_config:

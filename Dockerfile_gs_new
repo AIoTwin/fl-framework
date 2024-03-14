@@ -1,0 +1,29 @@
+FROM python:3.10-slim as compiler
+ENV PYTHONUNBUFFERED 1
+ENV GIT_PYTHON_REFRESH quiet
+ENV PYTHONPATH /app/
+
+WORKDIR /app/
+
+RUN python3 -m venv /opt/venv
+# Enable venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt && pip install spock-config==3.0.2 --no-deps
+
+FROM python:3.10-slim as runner
+ENV PYTHONUNBUFFERED 1
+ENV GIT_PYTHON_REFRESH quiet
+ENV PYTHONPATH /app/
+
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
+WORKDIR /app/
+COPY --from=compiler /opt/venv /opt/venv
+
+# Enable venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY . /app/
+
+CMD [ "python3", "projects/global_server/entry.py", "--config", "config/example_global_server/entry_server.yaml" ]

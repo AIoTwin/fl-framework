@@ -1,0 +1,120 @@
+{
+    "os": "Linux-6.2.0-34-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2023-10-18T16:36:09.108700",
+    "startedAt": "2023-10-18T16:36:08.257411",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "-c",
+        "config/example_container/client_config.yaml"
+    ],
+    "state": "running",
+    "program": "/home/ivan/aiotwin/software/iotwins-fedlearning/fl_common/clients/client_exec.py",
+    "codePath": "fl_common/clients/client_exec.py",
+    "git": {
+        "remote": "git@github.com:AIoTwin-Adaptive-FL-Orch/iotwins-fedlearning.git",
+        "commit": "8cb729148ca1c855719741df9e65b2b200129389"
+    },
+    "email": "ivan.cilic@fer.hr",
+    "root": "/home/ivan/aiotwin/software/iotwins-fedlearning",
+    "host": "ivan-t14",
+    "username": "ivan",
+    "executable": "/home/ivan/aiotwin/software/iotwins-fedlearning/venv/bin/python3",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 1543.60975,
+        "min": 1400.0,
+        "max": 1700.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1397.242,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1400.0,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.108,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1400.0,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1396.575,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.481,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1400.0,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1400.0,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1560.882,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.302,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1794.583,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.109,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.324,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.072,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1400.0,
+            "min": 1400.0,
+            "max": 1700.0
+        },
+        {
+            "current": 1397.283,
+            "min": 1400.0,
+            "max": 1700.0
+        }
+    ],
+    "disk": {
+        "total": 937.3305015563965,
+        "used": 721.3133239746094
+    },
+    "memory": {
+        "total": 30.569854736328125
+    }
+}

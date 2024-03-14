@@ -1,0 +1,85 @@
+wandb_version: 1
+
+client_type:
+  desc: null
+  value: null
+client_id:
+  desc: null
+  value: '1'
+device:
+  desc: null
+  value: cpu
+server_address:
+  desc: null
+  value: null
+trainer_config:
+  desc: null
+  value:
+    sampler_indices: null
+    train_config:
+      train_dataset_id: cifar10/train
+      epochs: 2
+      train_loader_params:
+        batch_size: 16
+        num_workers: 0
+        shuffle: true
+        pin_memory: true
+      log_freq: 1000
+      optimizer:
+        type: adam
+        params:
+          lr: 0.001
+      scheduler: null
+      criterion:
+        type: CrossEntropyLoss
+        params:
+          reduction: mean
+      max_grad_norm: null
+      grad_accum_steps: 1
+    validation_config:
+      eval_dataset_id: cifar10/val
+      eval_loader_params:
+        batch_size: 16
+        num_workers: 0
+        shuffle: false
+        pin_memory: true
+      log_freq: 1000
+      eval_metrics:
+      - Accuracy
+      main_metric: Accuracy
+    test_config: null
+    ckpt_path: null
+client_params:
+  desc: null
+  value: {}
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.12
+    cli_version: 0.15.8
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1697643621.388859
+    t:
+      1:
+      - 1
+      - 41
+      - 49
+      - 55
+      - 63
+      2:
+      - 1
+      - 41
+      - 49
+      - 55
+      - 63
+      3:
+      - 7
+      - 13
+      - 16
+      - 23
+      4: 3.10.12
+      5: 0.15.8
+      8:
+      - 5

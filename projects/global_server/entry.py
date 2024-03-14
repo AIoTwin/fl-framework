@@ -12,62 +12,55 @@ from misc.config_models import ClientConfig, DatasetsConfig, LoggingConfig
 logger = def_logger.getChild(__name__)
 
 
-class SubsetStrategy(Enum):
-    """
-    All strategies we want to try out to distribute subsets
-    E.g.,
-     Each client gets distinct classes but the same number of sample/classes,
-     Each client gets a different number of samples/classes
-     Clients within a cluster can share classes, etc.
-
-    """
-
-    flat_fair = "flat_fair"
-
-
 @spock
 class GlobalServerEntryConfig:
     """
     Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
     test_only: bool = False
-    train_split: int
-    datasets_config: DatasetsConfig
+    num_clients: int
     logging_config: LoggingConfig
-    subset_strategy: SubsetStrategy
+    dataset_config: DatasetsConfig
 
 
 logger = def_logger.getChild(__name__)
 
 
-def run(root_config: ClientEntryConfig):
+def run(root_config: GlobalServerEntryConfig):
     prepare_local_log_file(
         log_file_path=root_config.logging_config.local_logging_config.log_file_path,
         test_only=root_config.test_only,
         overwrite=False,
-    )
-    client_id = '1'
-    logger.info(
-        f"Starting FL client"
     )
     with concurrent.futures.ProcessPoolExecutor(
         max_workers=None
     ) as executor:
         executor.submit(
             run_script,
-            CLIENT_EXEC,
+            AGGREGATOR_EXEC,
             [
                 "-c",
-                "config/example_client/client_config.yaml",
-            ])
+                "config/example_global_server/aggregator_config.yaml",
+                "--AggregatorConfig.num_children",
+                f"{root_config.num_clients}",
+                "--StrategyConfig.strategy_params",
+                "{'min_available_clients': "
+                + f"{root_config.num_clients},"
+                + "'min_fit_clients': "
+                + f"{root_config.num_clients},"
+                + "'min_evaluate_clients': "
+                + f"{root_config.num_clients}"
+                + "}",
+            ],
+        )
 
 
 if __name__ == "__main__":
-    description = "FL client entry"
+    description = "FL global server entry"
     config = SpockBuilder(
-        ClientEntryConfig,
+        GlobalServerEntryConfig,
         desc=description,
         lazy=True,
     ).generate()
     # todo: global cuda settings (e.g., cudnn.benchmark) for performance
-    run(root_config=config.ClientEntryConfig)
+    run(root_config=config.GlobalServerEntryConfig)
