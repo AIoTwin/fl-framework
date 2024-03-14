@@ -13,8 +13,8 @@ from flwr.common import (
 )
 from flwr.server import ClientManager
 from flwr.server.client_proxy import ClientProxy
+from flwr.server.fleet.grpc_bidi.grpc_bridge import GrpcBridgeClosed
 from flwr.server.strategy import Strategy
-from torch import nn
 
 from misc.util import IterableSimpleNamespace, ndarray_to_weight_dict
 
@@ -27,35 +27,43 @@ _STRATEGY_REGISTRY = {
 
 class StrategyWithLockingWrapper(Strategy):
     def __init__(
-        self,
-        strategy_cls: Callable[..., Strategy],
-        *,
-        shared_state: IterableSimpleNamespace,
-        **strategy_kwargs,
+            self,
+            strategy_cls: Callable[..., Strategy],
+            *,
+            shared_state: IterableSimpleNamespace,
+            **strategy_kwargs,
     ):
         super().__init__()
         self._strategy = strategy_cls(**strategy_kwargs)
         self._shared_state = shared_state
 
     def aggregate_fit(
-        self,
-        server_round: int,
-        results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+            self,
+            server_round: int,
+            results: List[Tuple[ClientProxy, FitRes]],
+            failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        new_fails = []
+        new_results = []  # Initialize a new list to store filtered results
+        for x in range(len(results)):
+            if results[x][1].num_examples == -1:
+                # If num_examples is -1, set the corresponding failure entry to True
+                new_fails.append(GrpcBridgeClosed())
+            else:
+                new_results.append(results[x])
         parameters_aggregated, metrics_aggregated = self._strategy.aggregate_fit(
-            server_round, results, failures
+            server_round, new_results, new_fails
         )
 
-        self._shared_state.model.load_state_dict(
-            ndarray_to_weight_dict(self._shared_state.model.state_dict().keys(),
-                                   parameters_to_ndarrays(parameters_aggregated))
-        )
-
-        local_samples_processed = 0
-        for _, fit_res in results:
-            local_samples_processed += fit_res.num_examples
-        self._shared_state.local_samples_processed = local_samples_processed
+        if parameters_aggregated:
+            self._shared_state.model.load_state_dict(
+                ndarray_to_weight_dict(self._shared_state.model.state_dict().keys(),
+                                       parameters_to_ndarrays(parameters_aggregated))
+            )
+            local_samples_processed = 0
+            for _, fit_res in new_results:
+                local_samples_processed += fit_res.num_examples
+            self._shared_state.local_samples_processed = local_samples_processed
 
         self._shared_state.current_local_round += 1
 
@@ -79,30 +87,30 @@ class StrategyWithLockingWrapper(Strategy):
         return parameters_aggregated, metrics_aggregated
 
     def initialize_parameters(
-        self, client_manager: ClientManager
+            self, client_manager: ClientManager
     ) -> Optional[Parameters]:
         return self._strategy.initialize_parameters(client_manager)
 
     def configure_fit(
-        self, server_round: int, parameters: Parameters, client_manager: ClientManager
+            self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
         return self._strategy.configure_fit(server_round, parameters, client_manager)
 
     def configure_evaluate(
-        self, server_round: int, parameters: Parameters, client_manager: ClientManager
+            self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, EvaluateIns]]:
         self._strategy.configure_evaluate(server_round, parameters, client_manager)
 
     def aggregate_evaluate(
-        self,
-        server_round: int,
-        results: List[Tuple[ClientProxy, EvaluateRes]],
-        failures: List[Union[Tuple[ClientProxy, EvaluateRes], BaseException]],
+            self,
+            server_round: int,
+            results: List[Tuple[ClientProxy, EvaluateRes]],
+            failures: List[Union[Tuple[ClientProxy, EvaluateRes], BaseException]],
     ) -> Tuple[Optional[float], Dict[str, Scalar]]:
         self._strategy.aggregate_evaluate(server_round, results, failures)
 
     def evaluate(
-        self, server_round: int, parameters: Parameters
+            self, server_round: int, parameters: Parameters
     ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
         self._strategy.evaluate(server_round, parameters)
 
@@ -123,7 +131,7 @@ def _default_strategy_params(params_dict):
 
 
 def get_strategy(
-    name: str, partial_params: Optional[Dict[str, Any]], wrap_with_locking: bool = False
+        name: str, partial_params: Optional[Dict[str, Any]], wrap_with_locking: bool = False
 ) -> Callable[..., Strategy]:
     cls = _STRATEGY_REGISTRY.get(name)
     if not cls:

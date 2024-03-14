@@ -168,3 +168,28 @@ class NaiveNet(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+@register_model_class
+class CNN3(nn.Module):
+    def __init__(self, num_classes: int = 10):
+        super(CNN3, self).__init__()
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=5)
+        self.relu1 = nn.ReLU()
+        self.pool1 = nn.MaxPool2d(2, 2)
+
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
+        self.relu2 = nn.ReLU()
+        self.pool2 = nn.MaxPool2d(2, 2)
+
+        self.fc1 = nn.Linear(64 * 5 * 5, 512)
+        self.relu3 = nn.ReLU()
+
+        self.fc2 = nn.Linear(512, num_classes)
+
+    def forward(self, x):
+        x = self.pool1(self.relu1(self.conv1(x)))
+        x = self.pool2(self.relu2(self.conv2(x)))
+        x = x.view(-1, 64 * 5 * 5)
+        x = self.relu3(self.fc1(x))
+        x = self.fc2(x)
+        return x

@@ -24,6 +24,7 @@ class SubsetStrategy(Enum):
 
     flat_fair = "flat_fair"
     flat_skewed = "flat_skewed"
+    _flat_fair_2_classes = "_flat_fair_2_classes"
 
 
 @spock
@@ -34,10 +35,9 @@ class PilotExperimentConfig:
 
     test_only: bool = False
     num_clients: int
-    failures_at_round: List[int] = list()
+    failure_rate: List[float] = list()
     logging_config: LoggingConfig
     dataset_config: DatasetsConfig
-    subset_strategy: SubsetStrategy
 
 
 logger = def_logger.getChild(__name__)
@@ -51,13 +51,13 @@ def run(root_config: PilotExperimentConfig):
     )
     server_futures = []
     client_futures = []
-    num_unreliable_clients = len(root_config.failures_at_round)
+    num_unreliable_clients = len(root_config.failure_rate)
     num_reliable_clients = root_config.num_clients - num_unreliable_clients
     logger.info(
         f"Starting run with {root_config.num_clients} where {num_unreliable_clients} are unreliable"
     )
     with concurrent.futures.ProcessPoolExecutor(
-        max_workers=None
+            max_workers=None
     ) as executor:
         server_futures.append(
             executor.submit(
@@ -89,15 +89,15 @@ def run(root_config: PilotExperimentConfig):
                         "-c",
                         "config/example_pilot/client_config.yaml",
                         "--ClientConfig.client_id",
-                        f"{client_id}",
+                        "p" + f"{client_id}",
                     ]
                     + (
                         [
                             "--ClientConfig.client_type",
                             "UnreliableClient",
                             "--ClientConfig.client_params",
-                            "{'fail_at_round': "
-                            + f"{root_config.failures_at_round[client_id]}"
+                            "{'failure_rate': "
+                            + f"{root_config.failure_rate[client_id]}"
                             + "}",
                         ]
                         if client_id < num_unreliable_clients

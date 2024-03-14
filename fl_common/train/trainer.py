@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import torch
 from torch import nn
@@ -7,13 +7,13 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader, Dataset
 
-from data_retrieval import DatasetContainer, retrieval
+from data_retrieval import retrieval
 from data_retrieval.samplers.indexer import build_indices
 from fl_common.train.eval_metrics import get_eval_metrics
 from fl_common.train.registry import get_criterion, get_optimizer_and_scheduler
 from log_infra import def_logger
 from log_infra.metric_logging import SmoothedValue, WandBMetricLogger
-from misc.config_models import TrainerConfig
+from misc.config_models import TrainerConfig, ModelZooConfig
 
 logger = def_logger.getChild(__name__)
 
@@ -27,8 +27,10 @@ class ClientTrainer:
             trainer_configuration: TrainerConfig,
             metric_logger: WandBMetricLogger,
             datasets_dict: Dict[str, Dataset],
+            strategy: str,
             world_size: int,
             client_id: int,
+            model_config: ModelZooConfig
     ):
         self.device = device
         self.train_configuration = trainer_configuration.train_config
@@ -38,11 +40,12 @@ class ClientTrainer:
         self.epochs = self.train_configuration.epochs
         train_set = datasets_dict[self.train_configuration.train_dataset_id]
         test_set = datasets_dict[self.validation_configuration.eval_dataset_id]
-        sampler_indices = build_indices(strategy="flat_fair",
+        num_classes = (model_config.model_args.get("num_classes"))
+        sampler_indices = build_indices(strategy=strategy,
                                         data_source=train_set,
-                                        rank=client_id,
+                                        rank=int(client_id[1:]),
                                         world_size=world_size,
-                                        n_classes=10)
+                                        n_classes=num_classes)
 
         # todo: iterate through each dataset in the dataset dict, and use the dataset_id as the key
         #  check whether there are indices for each set
@@ -63,6 +66,7 @@ class ClientTrainer:
         }
         self.ckpt_path = trainer_configuration.ckpt_path
         self.epoch = 0
+        self.round = 0
 
     @staticmethod
     def train_one_epoch(
@@ -143,7 +147,9 @@ class ClientTrainer:
                 log_freq=self.train_configuration.log_freq,
                 epoch=epoch,
             )
-            # post epoch processing
+        self.round += 1
+        self.validate(model=model, test_mode=False)
+        # post epoch processing
 
     def validate(self, model: nn.Module, test_mode: bool = False) -> Dict[str, float]:
 
@@ -156,8 +162,11 @@ class ClientTrainer:
         if isinstance(eval_metrics, str):
             eval_metrics = [eval_metrics]
         eval_metrics = get_eval_metrics(eval_metrics)
-        result_dict = dict({"epoch": self.epoch})
         prefix = "testing" if test_mode else "validation"
+        if prefix == "validation":
+            result_dict = dict({"epoch": self.round})
+        else:
+            result_dict = dict({"epoch": self.epoch})
         for name, eval_metric in eval_metrics.items():
             res = eval_metric.eval_func(
                 model=model,

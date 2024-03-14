@@ -1,16 +1,17 @@
-device: 'cpu'
+device: 'cuda:0'
 strategy_config:
 strategy_type: 'FedAvg'
 strategy_params:
   accept_failures: True
-rounds: 10
+rounds: 100
+local_rounds: 2
 central_test_config:
 central_eval_metrics: [ 'Accuracy' ]
 central_main_metric: 'Accuracy'
 central_log_freq: 100
 central_dataset_id: 'cifar10/test'
 central_loader_params:
-  batch_size: 128
+  batch_size: 1
   num_workers: 0
   shuffle: False
   pin_memory: True

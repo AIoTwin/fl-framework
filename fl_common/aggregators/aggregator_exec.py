@@ -1,21 +1,31 @@
-import threading
+import random
 
+import numpy as np
+import torch
 from spock import SpockBuilder
 
-from data_retrieval import get_all_datasets
 from fl_common import factory
-from fl_common.aggregators.registry import Aggregator, AggregatorParentConnection
-from fl_common.servers.registry import get_flower_server
-from fl_common.strategy.registry import get_strategy
-from log_infra import build_wandb_metric_logger, prepare_local_log_file
+from log_infra import prepare_local_log_file
 from misc.config_models import (
     AggregatorConfig,
     DatasetsConfig,
     LoggingConfig,
     ModelZooConfig,
 )
-from misc.util import IterableSimpleNamespace, recursive_vars
-from models.registry import load_model_from_zoo
+
+
+def set_seed(seed):
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    if seed == -1:
+        return
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
 
 if __name__ == "__main__":
     # todo
@@ -32,6 +42,7 @@ if __name__ == "__main__":
     model_config: ModelZooConfig = config_space.ModelZooConfig
     datasets_config: DatasetsConfig = config_space.DatasetsConfig
     aggregator_config: AggregatorConfig = config_space.AggregatorConfig
+    set_seed(model_config.random_seed)
     prepare_local_log_file(
         log_file_path=logging_config.local_logging_config.log_file_path,
         mode="a",

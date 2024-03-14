@@ -1,20 +1,20 @@
-device: 'cpu'
+device: 'cuda:0'
 
 trainer_config:
 train_config:
 server_address: '127.0.0.1:5050'
 train_dataset_id: 'cifar10/train'
-epochs: 2
+epochs: 10
 train_loader_params:
-  batch_size: 64
+  batch_size: 16
   num_workers: 0
   shuffle: True
   pin_memory: True
 optimizer:
-  type: 'adam'
+  type: 'SGD'
   params:
     lr: 0.001
-#    momentum: 0.9
+    #momentum: 0.9
 #    weight_decay: 0.0001
 criterion:
   type: 'CrossEntropyLoss'
@@ -26,7 +26,7 @@ main_metric: 'Accuracy'
 eval_metrics: [ 'Accuracy' ]
 eval_dataset_id: 'cifar10/val'
 eval_loader_params:
-  batch_size: 128
+  batch_size: 1
   num_workers: 0
   shuffle: False
   pin_memory: True
