@@ -150,3 +150,4 @@ fabric.properties
 # project specifi
 resources
 sandbox
+wandb

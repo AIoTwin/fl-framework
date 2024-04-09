@@ -74,7 +74,7 @@ class StrategyWithLockingWrapper(Strategy):
         if self._shared_state.current_local_round == self._shared_state.no_local_rounds:
             self._shared_state.current_local_round = 0
 
-             logger.info("Local aggregator releasing server lock")
+            logger.info("Local aggregator releasing server lock")
             self._shared_state.server_lock.release()
 
             logger.info("Local aggregator acquiring client lock")

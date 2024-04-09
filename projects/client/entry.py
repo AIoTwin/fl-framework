@@ -1,7 +1,5 @@
 import concurrent.futures
-import time
-from enum import Enum
-from typing import List
+import wandb
 
 from spock import SpockBuilder, spock
 
@@ -12,29 +10,16 @@ from misc.config_models import ClientConfig, DatasetsConfig, LoggingConfig
 logger = def_logger.getChild(__name__)
 
 
-class SubsetStrategy(Enum):
-    """
-    All strategies we want to try out to distribute subsets
-    E.g.,
-     Each client gets distinct classes but the same number of sample/classes,
-     Each client gets a different number of samples/classes
-     Clients within a cluster can share classes, etc.
-
-    """
-
-    flat_fair = "flat_fair"
-
-
 @spock
 class ClientEntryConfig:
     """
     Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
-    test_only: bool = False
-    train_split: int
-    datasets_config: DatasetsConfig
+    client_id: int
+    epochs: int
+    server_address: str
+    wandb_key: str
     logging_config: LoggingConfig
-    subset_strategy: SubsetStrategy
 
 
 logger = def_logger.getChild(__name__)
@@ -43,13 +28,11 @@ logger = def_logger.getChild(__name__)
 def run(root_config: ClientEntryConfig):
     prepare_local_log_file(
         log_file_path=root_config.logging_config.local_logging_config.log_file_path,
-        test_only=root_config.test_only,
+        test_only=False,
         overwrite=False,
     )
-    client_id = '1'
-    logger.info(
-        f"Starting FL client"
-    )
+    wandb.login(key=root_config.wandb_key)
+
     with concurrent.futures.ProcessPoolExecutor(
         max_workers=None
     ) as executor:
@@ -59,6 +42,10 @@ def run(root_config: ClientEntryConfig):
             [
                 "-c",
                 "config/example_client/client_config.yaml",
+                f"--ClientConfig.client_id", f"h{root_config.client_id}",
+                f"--ClientConfig.server_address", f"{root_config.server_address}",
+                f"--TrainConfig.epochs", f"{root_config.epochs}",
+                "--ClientConfig.client_type", "TorchClient"
             ])
 
 

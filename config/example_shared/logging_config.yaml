@@ -1,5 +1,5 @@
 wandb_config:
-project: '2_classes_per_client_20_splits'
+project: 'ivan_test_containers'
 entity: 'aiotwins'
 run_name: 'example_run'
 enabled: True

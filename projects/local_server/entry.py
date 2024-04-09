@@ -1,7 +1,5 @@
 import concurrent.futures
-import time
-from enum import Enum
-from typing import List
+import wandb
 
 from spock import SpockBuilder, spock
 
@@ -17,10 +15,13 @@ class LocalServerEntryConfig:
     """
     Extend as needed "E.g., clusters: List[ClusterConfig]"
     """
-    test_only: bool = False
     num_clients: int
+    rounds: int
+    local_rounds: int
+    server_address: str
+    parent_address: str
+    wandb_key: str
     logging_config: LoggingConfig
-    dataset_config: DatasetsConfig
 
 
 logger = def_logger.getChild(__name__)
@@ -29,9 +30,11 @@ logger = def_logger.getChild(__name__)
 def run(root_config: LocalServerEntryConfig):
     prepare_local_log_file(
         log_file_path=root_config.logging_config.local_logging_config.log_file_path,
-        test_only=root_config.test_only,
+        test_only=False,
         overwrite=False,
     )
+    wandb.login(key=root_config.wandb_key)
+
     with concurrent.futures.ProcessPoolExecutor(
         max_workers=None
     ) as executor:
@@ -41,6 +44,11 @@ def run(root_config: LocalServerEntryConfig):
             ["-c",
              "config/example_local_server/aggregator_config.yaml",
              f"--AggregatorConfig.num_children", f"{root_config.num_clients}",
+             f"--AggregatorConfig.rounds", f"{root_config.rounds}",
+             f"--AggregatorConfig.local_rounds", f"{root_config.local_rounds}",
+             f"--AggregatorConfig.parent_address", f"{root_config.parent_address}",
+             f"--AggregatorConfig.server_address", f"{root_config.server_address}",
+             f"--AggregatorConfig.server_type", "TorchServer",
              "--StrategyConfig.strategy_params",
              "{'min_available_clients': "
              + f"{root_config.num_clients},"

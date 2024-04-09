@@ -4,6 +4,7 @@ ENV GIT_PYTHON_REFRESH quiet
 ENV PYTHONPATH /app/
 
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt-get update && apt-get install -y git
 
 WORKDIR /app/
 
@@ -12,4 +13,4 @@ RUN pip install -r requirements.txt && pip install spock-config==3.0.2 --no-deps
 
 COPY . /app/
 
-CMD [ "python3", "projects/local_server/entry.py", "--config", "config/example_local_server/entry_server.yaml" ]
+CMD [ "python3", "projects/local_server/entry.py", "--config", "config/example_local_server/entry.yaml" ]

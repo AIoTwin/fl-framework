@@ -1,0 +1,8 @@
+num_clients: 2
+rounds: 10
+local_rounds: 2
+parent_address: '0.0.0.0:5000'
+server_address: '0.0.0.0:5002'
+wandb_key: 59cf8e8e0cc7e7771da56a316db55003c01c0f24
+
+config: [ '../example_shared/logging_config.yaml' ]

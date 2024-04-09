@@ -1,4 +1,4 @@
-device: 'cuda:0'
+device: 'cpu'
 
 trainer_config:
 train_config:
