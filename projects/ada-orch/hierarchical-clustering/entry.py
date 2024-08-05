@@ -48,7 +48,7 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                            overwrite=False)
     aggregator_futures = defaultdict(list)
     client_futures = defaultdict(list)
-    with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         # todo: generalize topology traversal and instanciation and encapsulate
         ports = _parse_ports(entry_config.port_range)
         topology = entry_config.topology
@@ -108,10 +108,10 @@ def run(entry_config: HierarchicalClusteringExperimentConfig):
                             client_config = children["base_config"]
                             failure_rate = children["failure_rate"]
                             client_id = next(rank_counter)
-                            if first_aggr:
-                                client_id=client_id*2
-                            else:
-                                client_id = client_id * 2 +1
+                            # if first_aggr:
+                            #     client_id=client_id*2
+                            # else:
+                            #     client_id = client_id * 2 +1
                             print(client_id)
                             if client_id < len(failure_rate):
                                 client_futures[f"Parent={aggregator_address}"].append(executor.submit(

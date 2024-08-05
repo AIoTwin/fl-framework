@@ -73,6 +73,7 @@ class ClientConfig:
     server_address: Optional[str]  # override to dynamically asisigning server address (e.g., after clustering)
     trainer_config: TrainerConfig
     client_params: Dict[str, object] = dict()
+    dataset_list: Dict[str, int] = dict()
 
 
 @spock

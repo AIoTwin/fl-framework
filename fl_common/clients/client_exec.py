@@ -17,15 +17,16 @@ logger = def_logger.getChild(__name__)
 
 
 def set_seed(seed):
-    if seed == -1:
-        return
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+    if seed == -1:
+        return
+
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    torch.manual_seed(seed)
 
 
 if __name__ == "__main__":

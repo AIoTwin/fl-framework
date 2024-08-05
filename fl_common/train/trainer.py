@@ -30,7 +30,8 @@ class ClientTrainer:
             strategy: str,
             world_size: int,
             client_id: int,
-            model_config: ModelZooConfig
+            model_config: ModelZooConfig,
+            dataset_list: Dict[str, int]
     ):
         self.device = device
         self.train_configuration = trainer_configuration.train_config
@@ -45,7 +46,9 @@ class ClientTrainer:
                                         data_source=train_set,
                                         rank=int(client_id[1:]),
                                         world_size=world_size,
-                                        n_classes=num_classes)
+                                        n_classes=num_classes,
+                                        dataset_list=dataset_list,
+                                        seed=model_config.random_seed)
 
         # todo: iterate through each dataset in the dataset dict, and use the dataset_id as the key
         #  check whether there are indices for each set
