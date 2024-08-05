@@ -31,6 +31,8 @@ eval_loader_params:
   shuffle: False
   pin_memory: True
 
+dataset_list:
+  {"0":20, "2":100}
 
 config: [ '../example_shared/logging_config.yaml',
           '../example_shared/model_config.yaml',
