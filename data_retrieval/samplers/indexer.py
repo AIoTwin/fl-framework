@@ -100,11 +100,12 @@ def _custom(data_source: Dataset,
     random.seed(rank)
     for index, (class_label, items) in enumerate(dataset_list.items()):
         random_subset = random.sample(class_samples[int(class_label)], int(items))
-        client_subsets[rank].append(random_subset)
+        client_subsets[rank].extend(random_subset)
 
+    logger.info(f"Custom strategy with dataset: {dataset_list}")
     logger.info(str(world_size))
     logger.info(str(rank))
-    logger.info(f"Assigning {len(client_subsets[rank])} to client ith rank {rank}")
+    logger.info(f"Assigning {len(client_subsets[rank])} samples to client with rank {rank}")
     random.shuffle(client_subsets[rank])
     random.seed(seed)
     return client_subsets[rank]
@@ -119,7 +120,7 @@ def build_indices(strategy: str, data_source: Dict[str, Dataset], rank: int, wor
     elif strategy == "custom":
         return _custom(data_source, n_classes, world_size, rank, dataset_list, seed, *args, **kwargs)
     elif strategy == "flat_fair_2_classes":
-        return _flat_fair_2_classes_per_client(data_source, n_classes, seed, world_size, rank, *args, **kwargs)
+        return _flat_fair_2_classes_per_client(data_source, n_classes, world_size, rank, seed, *args, **kwargs)
     elif strategy == 'all_for_all':
         return None  # Won't use CustomSampler when indices are None
 

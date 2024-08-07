@@ -59,6 +59,7 @@ class TorchBaseClient(NumPyClient):
                     time.sleep(2)
                     continue
                 else:
+                    logger.error("Exception occurred when starting Numpy client: ", e)
                     break
 
 

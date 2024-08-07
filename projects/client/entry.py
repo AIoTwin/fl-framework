@@ -1,4 +1,6 @@
 import concurrent.futures
+from typing import Dict
+
 import wandb
 
 from spock import SpockBuilder, spock
@@ -19,6 +21,7 @@ class ClientEntryConfig:
     epochs: int
     server_address: str
     wandb_key: str
+    dataset_list: Dict[str, int]
     logging_config: LoggingConfig
 
 
@@ -44,6 +47,7 @@ def run(root_config: ClientEntryConfig):
                 "config/example_client/client_config.yaml",
                 f"--ClientConfig.client_id", f"h{root_config.client_id}",
                 f"--ClientConfig.server_address", f"{root_config.server_address}",
+                f"--ClientConfig.dataset_list", f"{root_config.dataset_list}",
                 f"--TrainConfig.epochs", f"{root_config.epochs}",
                 "--ClientConfig.client_type", "TorchClient"
             ])
